@@ -96,9 +96,20 @@ export default function PetDetails() {
       >
         <h1 style={{ margin: 0 }}>{pet.name || 'Sin nombre'}</h1>
 
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button
-            onClick={() => navigate(`/clients/${clientId}/pets/${petId}/edit`)}
+            onClick={() =>
+              navigate(`/clients/${clientId}/pets/${petId}/history`)
+            }
+            disabled={saving}
+          >
+            Historial médico
+          </button>
+
+          <button
+            onClick={() =>
+              navigate(`/clients/${clientId}/pets/${petId}/edit`)
+            }
             disabled={saving}
           >
             Editar

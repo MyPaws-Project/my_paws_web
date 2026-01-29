@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { login, register } from '../../services/firebase/auth.service';
 import { useNavigate } from 'react-router-dom';
 
+import logo from '../../assets/mypaws-logo.png';
+import './login.css';
 
 const friendlyAuthError = (err) => {
   const code = err?.code || '';
@@ -18,10 +20,14 @@ export default function Login() {
   const navigate = useNavigate();
 
   const [mode, setMode] = useState('login');
+  const isRegister = mode === 'register';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [clinicName, setClinicName] = useState('');
+  const [clinicAddress, setClinicAddress] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,11 +38,25 @@ export default function Login() {
     setLoading(true);
 
     try {
-      if (mode === 'register') {
+      if (isRegister) {
         if (password !== confirmPassword) {
           throw new Error('Las contraseñas no coinciden');
         }
-        await register(email.trim(), password);
+
+        const nameTrimmed = clinicName.trim();
+        if (!nameTrimmed) {
+          throw new Error('El nombre de la veterinaria es obligatorio');
+        }
+
+        const addressTrimmed = clinicAddress.trim();
+        if (!addressTrimmed) {
+          throw new Error('La dirección de la veterinaria es obligatoria');
+        }
+
+        await register(email.trim(), password, {
+          clinicName: nameTrimmed,
+          clinicAddress: addressTrimmed,
+        });
       } else {
         await login(email.trim(), password);
       }
@@ -53,79 +73,119 @@ export default function Login() {
     setError('');
     setPassword('');
     setConfirmPassword('');
+    setClinicName('');
+    setClinicAddress('');
     setMode((prev) => (prev === 'login' ? 'register' : 'login'));
   };
 
   return (
-    <div style={{ maxWidth: 360, margin: '80px auto', padding: 16 }}>
-      <h1 style={{ marginBottom: 16 }}>
-        {mode === 'login' ? 'Login' : 'Registro'}
-      </h1>
+    <div className="auth-page">
+      <div className="auth-brand">
+        <h2>MyPaws</h2>
+        <p>Gestión simple y moderna para veterinarias. Clientes, mascotas y mucho más.</p>
+      </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12 }}>
-        <label style={{ display: 'grid', gap: 6 }}>
-          Email
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
-        </label>
+      <div className="auth-card">
+        <div className="auth-form-wrapper">
+          <header className="auth-header">
+            <img className="auth-logo" src={logo} alt="MyPaws logo" />
+            <h1 className="auth-title">{isRegister ? 'Registro' : 'Login'}</h1>
+            <p className="auth-subtitle">
+              {isRegister
+                ? 'Creá tu cuenta de veterinaria para empezar.'
+                : 'Ingresá con tu cuenta de veterinaria.'}
+            </p>
+          </header>
 
-        <label style={{ display: 'grid', gap: 6 }}>
-          Contraseña
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          />
-        </label>
+          <form onSubmit={handleSubmit} className="auth-form">
+            {isRegister && (
+              <>
+                <label className="auth-field">
+                  <span>Nombre de la veterinaria</span>
+                  <input
+                    type="text"
+                    value={clinicName}
+                    onChange={(e) => setClinicName(e.target.value)}
+                    required
+                    placeholder="Ej: MyPaws Centro"
+                  />
+                </label>
 
-        {mode === 'register' && (
-          <label style={{ display: 'grid', gap: 6 }}>
-            Confirmar Contraseña
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-            />
-          </label>
-        )}
+                <label className="auth-field">
+                  <span>Dirección de la veterinaria</span>
+                  <input
+                    type="text"
+                    value={clinicAddress}
+                    onChange={(e) => setClinicAddress(e.target.value)}
+                    required
+                    autoComplete="street-address"
+                    placeholder="Ej: Av. Italia 1234"
+                  />
+                </label>
+              </>
+            )}
 
-        {error ? <p style={{ color: 'crimson' }}>{error}</p> : null}
+            <label className="auth-field">
+              <span>Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="tuemail@ejemplo.com"
+              />
+            </label>
 
-        <button type="submit" disabled={loading}>
-          {loading
-            ? mode === 'login'
-              ? 'Entrando…'
-              : 'Creando…'
-            : mode === 'login'
-            ? 'Iniciar sesión'
-            : 'Crear cuenta'}
-        </button>
+            <label className="auth-field">
+              <span>Contraseña</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete={isRegister ? 'new-password' : 'current-password'}
+                placeholder="••••••••"
+              />
+            </label>
 
-        <button
-          type="button"
-          onClick={toggleMode}
-          disabled={loading}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            textDecoration: 'underline',
-          }}
-        >
-          {mode === 'login'
-            ? 'Registrarme'
-            : 'Iniciar sesión'}
-        </button>
-      </form>
+            {isRegister && (
+              <label className="auth-field">
+                <span>Confirmar contraseña</span>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  placeholder="••••••••"
+                />
+              </label>
+            )}
+
+            {error ? <p className="auth-error">{error}</p> : null}
+
+            <button type="submit" disabled={loading} className="auth-primary">
+              {loading
+                ? isRegister
+                  ? 'Creando…'
+                  : 'Entrando…'
+                : isRegister
+                ? 'Crear cuenta'
+                : 'Iniciar sesión'}
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleMode}
+              disabled={loading}
+              className="auth-link"
+            >
+              {isRegister ? 'Ya tengo cuenta → Iniciar sesión' : 'No tengo cuenta → Registrarme'}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
