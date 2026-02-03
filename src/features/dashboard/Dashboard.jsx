@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getClients } from '../../services/clients/clients.service';
+import AppointmentsList from '../appointments/AppointmentsList';
 
 function toMillis(ts) {
   if (!ts) return 0;
@@ -74,13 +75,17 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <button onClick={() => navigate('/clients')}>Ver todos los clientes</button>
+        <button onClick={() => navigate('/clients')}>
+          Ver todos los clientes
+        </button>
       </div>
 
       <div style={{ padding: 16, border: '1px solid #ddd', borderRadius: 10 }}>
         <h3 style={{ margin: 0 }}>Clientes recientes</h3>
 
-        {error ? <p style={{ color: 'crimson', marginTop: 10 }}>{error}</p> : null}
+        {error ? (
+          <p style={{ color: 'crimson', marginTop: 10 }}>{error}</p>
+        ) : null}
 
         {recentClients.length === 0 ? (
           <p style={{ marginTop: 12, opacity: 0.75 }}>
@@ -117,6 +122,34 @@ export default function Dashboard() {
             ))}
           </div>
         )}
+      </div>
+
+      <div
+        style={{
+          marginTop: 12,
+          padding: 16,
+          border: '1px solid #ddd',
+          borderRadius: 10,
+        }}
+      >
+      <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 8,
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <h3 style={{ margin: 0 }}>Consultas de hoy</h3>
+
+          <button onClick={() => navigate('/calendar')}>
+            Ver calendario
+          </button>
+        </div>
+
+        <AppointmentsList />
       </div>
     </div>
   );
