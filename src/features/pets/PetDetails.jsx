@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getPetById, deletePet } from '../../services/pets/pets.service';
+import './petDetails.css';
 
 export default function PetDetails() {
   const { id: clientId, petId } = useParams();
@@ -65,85 +66,91 @@ export default function PetDetails() {
     }
   };
 
-  if (loading) return <div style={{ padding: 16 }}>Cargando…</div>;
+  if (loading) return <div className="pd-status">Cargando…</div>;
 
   if (error) {
     return (
-      <div style={{ padding: 16 }}>
-        <p style={{ color: 'crimson' }}>{error}</p>
-        <button onClick={() => navigate(`/clients/${clientId}`)} disabled={saving}>
-          Volver
-        </button>
+      <div className="pd-page">
+        <div className="pd-status">
+          <p className="pd-error">{error}</p>
+          <button
+            className="btn-secondary"
+            onClick={() => navigate(`/clients/${clientId}`)}
+            disabled={saving}
+          >
+            Volver
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 720 }}>
-      <button onClick={() => navigate(`/clients/${clientId}`)} disabled={saving}>
+    <div className="pd-page">
+      <button
+        className="pd-back"
+        onClick={() => navigate(`/clients/${clientId}`)}
+        disabled={saving}
+      >
         ← Volver al cliente
       </button>
 
-      <div
-        style={{
-          marginTop: 12,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 12,
-          flexWrap: 'wrap',
-        }}
-      >
-        <h1 style={{ margin: 0 }}>{pet.name || 'Sin nombre'}</h1>
+      <header className="pd-header">
+        <h1 className="pd-title">{pet?.name || 'Sin nombre'}</h1>
 
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="pd-actions">
           <button
-            onClick={() =>
-              navigate(`/clients/${clientId}/pets/${petId}/history`)
-            }
+            className="btn-primary"
+            onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
             disabled={saving}
           >
             Historial médico
           </button>
 
           <button
-            onClick={() =>
-              navigate(`/clients/${clientId}/pets/${petId}/edit`)
-            }
+            className="btn-secondary"
+            onClick={() => navigate(`/clients/${clientId}/pets/${petId}/edit`)}
             disabled={saving}
           >
             Editar
           </button>
 
-          <button onClick={handleDelete} disabled={saving}>
+          <button className="btn-danger" onClick={handleDelete} disabled={saving}>
             Eliminar
           </button>
         </div>
-      </div>
+      </header>
 
-      <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-        <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-          <b>Especie:</b> {pet.species || '—'}
-        </div>
-
-        <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-          <b>Raza:</b> {pet.breed || '—'}
-        </div>
-
-        <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-          <b>Sexo:</b> {pet.sex || '—'}
-        </div>
-
-        <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-          <b>Fecha de nacimiento:</b> {pet.birthDate || '—'}
-        </div>
-
-        {pet.notes ? (
-          <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-            <b>Notas:</b> {pet.notes}
+      <section className="card pd-card">
+        <div className="pd-grid">
+          <div className="pd-item">
+            <div className="pd-label">Especie</div>
+            <div className="pd-value">{pet?.species || '—'}</div>
           </div>
-        ) : null}
-      </div>
+
+          <div className="pd-item">
+            <div className="pd-label">Raza</div>
+            <div className="pd-value">{pet?.breed || '—'}</div>
+          </div>
+
+          <div className="pd-item">
+            <div className="pd-label">Sexo</div>
+            <div className="pd-value">{pet?.sex || '—'}</div>
+          </div>
+
+          <div className="pd-item">
+            <div className="pd-label">Fecha de nacimiento</div>
+            <div className="pd-value">{pet?.birthDate || '—'}</div>
+          </div>
+
+          {pet?.notes ? (
+            <div className="pd-item pd-span-2">
+              <div className="pd-label">Notas</div>
+              <div className="pd-value">{pet.notes}</div>
+            </div>
+          ) : null}
+        </div>
+      </section>
     </div>
   );
 }

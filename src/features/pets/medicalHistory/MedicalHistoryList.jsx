@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  listHistoryEntries,
-  deleteHistoryEntry,
-} from '../../../services/pets/medicalHistory.service';
+import { listHistoryEntries, deleteHistoryEntry } from '../../../services/pets/medicalHistory.service';
+import './medicalHistoryList.css';
 
 export default function MedicalHistoryList() {
   const { id: clientId, petId } = useParams();
@@ -19,7 +17,7 @@ export default function MedicalHistoryList() {
       setError('');
       setLoading(true);
       const data = await listHistoryEntries(clientId, petId);
-      setItems(data);
+      setItems(Array.isArray(data) ? data : []);
     } catch (e) {
       setError('No se pudo cargar el historial médico');
     } finally {
@@ -29,13 +27,10 @@ export default function MedicalHistoryList() {
 
   useEffect(() => {
     if (clientId && petId) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId, petId]);
 
   const handleDelete = async (entryId) => {
-    const ok = window.confirm(
-      '¿Eliminar esta consulta? Esta acción no se puede deshacer.'
-    );
+    const ok = window.confirm('¿Eliminar esta consulta? Esta acción no se puede deshacer.');
     if (!ok) return;
 
     try {
@@ -49,46 +44,15 @@ export default function MedicalHistoryList() {
     }
   };
 
-  if (loading) return <div style={{ padding: 16 }}>Cargando historial…</div>;
+  if (loading) return <div className="mh-status">Cargando historial…</div>;
 
   if (error) {
     return (
-      <div style={{ padding: 16 }}>
-        <p style={{ color: 'crimson' }}>{error}</p>
-        <button
-          onClick={() => navigate(`/clients/${clientId}/pets/${petId}`)}
-          disabled={saving}
-        >
-          Volver
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ padding: 16, maxWidth: 820 }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: 12,
-          flexWrap: 'wrap',
-        }}
-      >
-        <h1 style={{ margin: 0 }}>Historial médico</h1>
-
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      <div className="mh-page">
+        <div className="mh-status">
+          <p className="mh-error">{error}</p>
           <button
-            onClick={() =>
-              navigate(`/clients/${clientId}/pets/${petId}/history/new`)
-            }
-            disabled={saving}
-          >
-            + Agregar consulta
-          </button>
-
-          <button
+            className="btn-secondary"
             onClick={() => navigate(`/clients/${clientId}/pets/${petId}`)}
             disabled={saving}
           >
@@ -96,72 +60,89 @@ export default function MedicalHistoryList() {
           </button>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="mh-page">
+      <header className="mh-header">
+        <div className="mh-headings">
+          <h1 className="mh-title">Historial médico</h1>
+        </div>
+
+        <div className="mh-actions">
+          <button
+            className="btn-primary"
+            onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history/new`)}
+            disabled={saving}
+          >
+            + Agregar consulta
+          </button>
+
+          <button
+            className="btn-secondary"
+            onClick={() => navigate(`/clients/${clientId}/pets/${petId}`)}
+            disabled={saving}
+          >
+            Volver
+          </button>
+        </div>
+      </header>
 
       {items.length === 0 ? (
-        <p style={{ marginTop: 12 }}>Todavía no hay consultas registradas.</p>
+        <div className="card mh-empty">
+          Todavía no hay consultas registradas.
+        </div>
       ) : (
-        <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
+        <div className="mh-list">
           {items.map((x) => (
-            <div
-              key={x.id}
-              style={{
-                padding: 12,
-                border: '1px solid #ddd',
-                borderRadius: 12,
-                background: '#fff',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                }}
-              >
-                <div>
-                  <b>{x.date || 'Sin fecha'}</b>
-                  <div style={{ opacity: 0.85 }}>
-                    {x.reason || 'Sin motivo'}
-                  </div>
+            <div key={x.id} className="card mh-item">
+              <div className="mh-item-top">
+                <div className="mh-main">
+                  <div className="mh-date">{x.date || 'Sin fecha'}</div>
+                  <div className="mh-reason">{x.reason || 'Sin motivo'}</div>
                 </div>
 
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div className="mh-item-actions">
                   <button
+                    className="btn-secondary"
                     onClick={() =>
-                      navigate(
-                        `/clients/${clientId}/pets/${petId}/history/${x.id}/edit`
-                      )
+                      navigate(`/clients/${clientId}/pets/${petId}/history/${x.id}/edit`)
                     }
                     disabled={saving}
                   >
                     Editar
                   </button>
 
-                  <button onClick={() => handleDelete(x.id)} disabled={saving}>
+                  <button
+                    className="btn-danger"
+                    onClick={() => handleDelete(x.id)}
+                    disabled={saving}
+                  >
                     Eliminar
                   </button>
                 </div>
               </div>
 
-              {x.diagnosis ? (
-                <p style={{ margin: '8px 0 0' }}>
-                  <b>Diagnóstico:</b> {x.diagnosis}
-                </p>
-              ) : null}
+              <div className="mh-details">
+                {x.diagnosis ? (
+                  <p className="mh-line">
+                    <b>Diagnóstico:</b> {x.diagnosis}
+                  </p>
+                ) : null}
 
-              {x.treatment ? (
-                <p style={{ margin: '6px 0 0' }}>
-                  <b>Tratamiento:</b> {x.treatment}
-                </p>
-              ) : null}
+                {x.treatment ? (
+                  <p className="mh-line">
+                    <b>Tratamiento:</b> {x.treatment}
+                  </p>
+                ) : null}
 
-              {x.notes ? (
-                <p style={{ margin: '6px 0 0', opacity: 0.9 }}>
-                  <b>Notas:</b> {x.notes}
-                </p>
-              ) : null}
+                {x.notes ? (
+                  <p className="mh-line mh-notes">
+                    <b>Notas:</b> {x.notes}
+                  </p>
+                ) : null}
+              </div>
             </div>
           ))}
         </div>

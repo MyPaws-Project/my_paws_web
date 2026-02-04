@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createPet, getPetById, updatePet } from '../../services/pets/pets.service';
+import './petForm.css';
 
 export default function PetForm() {
   const { id: clientId, petId } = useParams();
@@ -101,134 +102,117 @@ export default function PetForm() {
     }
   };
 
-  if (loading) return <div style={{ padding: 16 }}>Cargando…</div>;
+  const goBack = () => {
+    if (isEdit) navigate(`/clients/${clientId}/pets/${petId}`);
+    else navigate(`/clients/${clientId}`);
+  };
+
+  if (loading) return <div className="pf-status">Cargando…</div>;
 
   if (error && isEdit) {
     return (
-      <div style={{ padding: 16 }}>
-        <p style={{ color: 'crimson' }}>{error}</p>
-        <button onClick={() => navigate(`/clients/${clientId}`)} disabled={saving}>
-          Volver
-        </button>
+      <div className="pf-page">
+        <div className="pf-status">
+          <p className="pf-error">{error}</p>
+          <button className="btn-secondary" onClick={() => navigate(`/clients/${clientId}`)} disabled={saving}>
+            Volver
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 720 }}>
-      <button
-        onClick={() => {
-          if (isEdit) navigate(`/clients/${clientId}/pets/${petId}`);
-          else navigate(`/clients/${clientId}`);
-        }}
-        disabled={saving}
-      >
+    <div className="pf-page">
+      <button className="pf-back" onClick={goBack} disabled={saving}>
         ← Volver
       </button>
 
-      <h1 style={{ marginTop: 12 }}>{isEdit ? 'Editar mascota' : 'Nueva mascota'}</h1>
+      <h1 className="pf-title">{isEdit ? 'Editar mascota' : 'Nueva mascota'}</h1>
 
-      {!isEdit && error ? <p style={{ color: 'crimson' }}>{error}</p> : null}
-      {isEdit && error ? <p style={{ color: 'crimson' }}>{error}</p> : null}
+      {error ? <p className="pf-error">{error}</p> : null}
 
-      <form onSubmit={onSubmit} style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-        <div style={{ display: 'grid', gap: 6 }}>
-          <label>
-            <b>Nombre *</b>
-          </label>
-          <input
-            name="name"
-            value={form.name}
-            onChange={onChange}
-            disabled={saving}
-            style={{ padding: 10, borderRadius: 10, border: '1px solid #ddd' }}
-          />
+      <form className="pf-form card" onSubmit={onSubmit}>
+        <div className="pf-grid">
+          <div className="pf-field pf-span-2">
+            <label className="pf-label">Nombre *</label>
+            <input
+              className="pf-input"
+              name="name"
+              value={form.name}
+              onChange={onChange}
+              disabled={saving}
+            />
+          </div>
+
+          <div className="pf-field">
+            <label className="pf-label">Especie</label>
+            <input
+              className="pf-input"
+              name="species"
+              value={form.species}
+              onChange={onChange}
+              disabled={saving}
+            />
+          </div>
+
+          <div className="pf-field">
+            <label className="pf-label">Raza</label>
+            <input
+              className="pf-input"
+              name="breed"
+              value={form.breed}
+              onChange={onChange}
+              disabled={saving}
+            />
+          </div>
+
+          <div className="pf-field">
+            <label className="pf-label">Sexo</label>
+            <select
+              className="pf-input"
+              name="sex"
+              value={form.sex}
+              onChange={onChange}
+              disabled={saving}
+            >
+              <option value="">—</option>
+              <option value="male">Macho</option>
+              <option value="female">Hembra</option>
+            </select>
+          </div>
+
+          <div className="pf-field">
+            <label className="pf-label">Fecha de nacimiento</label>
+            <input
+              className="pf-input"
+              type="date"
+              name="birthDate"
+              value={form.birthDate}
+              onChange={onChange}
+              disabled={saving}
+            />
+          </div>
+
+          <div className="pf-field pf-span-2">
+            <label className="pf-label">Notas</label>
+            <textarea
+              className="pf-textarea"
+              name="notes"
+              value={form.notes}
+              onChange={onChange}
+              disabled={saving}
+              rows={4}
+            />
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gap: 6 }}>
-          <label>
-            <b>Especie</b>
-          </label>
-          <input
-            name="species"
-            value={form.species}
-            onChange={onChange}
-            disabled={saving}
-            style={{ padding: 10, borderRadius: 10, border: '1px solid #ddd' }}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gap: 6 }}>
-          <label>
-            <b>Raza</b>
-          </label>
-          <input
-            name="breed"
-            value={form.breed}
-            onChange={onChange}
-            disabled={saving}
-            style={{ padding: 10, borderRadius: 10, border: '1px solid #ddd' }}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gap: 6 }}>
-          <label>
-            <b>Sexo</b>
-          </label>
-          <select
-            name="sex"
-            value={form.sex}
-            onChange={onChange}
-            disabled={saving}
-            style={{ padding: 10, borderRadius: 10, border: '1px solid #ddd' }}
-          >
-            <option value="">—</option>
-            <option value="male">Macho</option>
-            <option value="female">Hembra</option>
-          </select>
-        </div>
-
-        <div style={{ display: 'grid', gap: 6 }}>
-          <label>
-            <b>Fecha de nacimiento</b>
-          </label>
-          <input
-            type="date"
-            name="birthDate"
-            value={form.birthDate}
-            onChange={onChange}
-            disabled={saving}
-            style={{ padding: 10, borderRadius: 10, border: '1px solid #ddd' }}
-          />
-        </div>
-
-        <div style={{ display: 'grid', gap: 6 }}>
-          <label>
-            <b>Notas</b>
-          </label>
-          <textarea
-            name="notes"
-            value={form.notes}
-            onChange={onChange}
-            disabled={saving}
-            rows={4}
-            style={{ padding: 10, borderRadius: 10, border: '1px solid #ddd', resize: 'vertical' }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button type="submit" disabled={saving}>
+        <div className="pf-actions">
+          <button className="btn-primary" type="submit" disabled={saving}>
             {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear mascota'}
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (isEdit) navigate(`/clients/${clientId}/pets/${petId}`);
-              else navigate(`/clients/${clientId}`);
-            }}
-            disabled={saving}
-          >
+          <button className="btn-secondary" type="button" onClick={goBack} disabled={saving}>
             Cancelar
           </button>
         </div>

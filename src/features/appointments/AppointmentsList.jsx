@@ -8,6 +8,8 @@ import {
 import { getClientById } from "../../services/clients/clients.service";
 import { auth } from "../../services/firebase/firebase";
 
+import "./appointmentsList.css";
+
 export default function AppointmentsList() {
   const [user, setUser] = useState(null);
 
@@ -85,6 +87,9 @@ export default function AppointmentsList() {
       setClientMap(map);
     } catch (e) {
       console.error("ERROR cargando citas del día:", e);
+      setItems([]);
+      setClientMap({});
+      setError("No se pudieron cargar las consultas de hoy.");
     } finally {
       setLoading(false);
     }
@@ -99,6 +104,7 @@ export default function AppointmentsList() {
     if (!ok) return;
 
     try {
+      setError("");
       await deleteAppointment(id);
       await load(user?.uid);
     } catch (e) {
@@ -107,47 +113,33 @@ export default function AppointmentsList() {
     }
   }
 
-  if (loading) return <p>Cargando consultas de hoy...</p>;
-
   const todayLabel = new Date().toLocaleDateString();
 
+  if (loading) return <p className="al-status">Cargando consultas de hoy...</p>;
+
   return (
-    <div style={{ marginTop: 16 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-        <h3 style={{ margin: 0 }}>Consultas de hoy</h3>
-        <span style={{ opacity: 0.75 }}>{todayLabel}</span>
+    <div className="al-wrap">
+      <div className="al-head">
+        <h3 className="al-title">Consultas de hoy</h3>
+        <span className="al-date">{todayLabel}</span>
       </div>
 
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
+      {error ? <p className="al-error">{error}</p> : null}
 
       {items.length === 0 ? (
-        <p>No hay turnos agendados para hoy.</p>
+        <p className="al-empty">No hay turnos agendados para hoy.</p>
       ) : (
-        <div style={{ marginTop: 12 }}>
+        <div className="al-list">
           {items.map((a) => {
             const start = a.startTime?.toDate ? a.startTime.toDate() : null;
             const end = a.endTime?.toDate ? a.endTime.toDate() : null;
 
             return (
-              <div
-                key={a.id}
-                style={{
-                  border: "1px solid #ddd",
-                  borderRadius: 8,
-                  padding: 12,
-                  marginBottom: 10,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                  }}
-                >
-                  <div>
-                    <div>
-                      <strong>Hora:</strong>{" "}
+              <div key={a.id} className="al-item card">
+                <div className="al-row">
+                  <div className="al-main">
+                    <div className="al-line">
+                      <b>Hora:</b>{" "}
                       {start
                         ? start.toLocaleTimeString([], {
                             hour: "2-digit",
@@ -163,35 +155,30 @@ export default function AppointmentsList() {
                         : "-"}
                     </div>
 
-                    <div style={{ marginTop: 6 }}>
-                      <strong>Cliente:</strong>{" "}
-                      {a.clientId
-                        ? clientMap[a.clientId] || "Cargando..."
-                        : "-"}
+                    <div className="al-line">
+                      <b>Cliente:</b>{" "}
+                      {a.clientId ? clientMap[a.clientId] || "Cargando..." : "-"}
                     </div>
 
-                    <div style={{ marginTop: 6 }}>
-                      <strong>Motivo:</strong> {a.reason || "-"}
-                      {" · "}
-                      <strong>Estado:</strong> {a.status || "scheduled"}
+                    <div className="al-line">
+                      <b>Motivo:</b> {a.reason || "-"} {" · "}
+                      <b>Estado:</b> {a.status || "scheduled"}
                     </div>
 
                     {a.notes ? (
-                      <div style={{ marginTop: 6 }}>
-                        <strong>Notas:</strong> {a.notes}
+                      <div className="al-line">
+                        <b>Notas:</b> {a.notes}
                       </div>
                     ) : null}
                   </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                      minWidth: 140,
-                    }}
-                  >
-                    <button onClick={() => handleDelete(a.id)}>Eliminar</button>
+                  <div className="al-actions">
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleDelete(a.id)}
+                    >
+                      Eliminar
+                    </button>
                   </div>
                 </div>
               </div>

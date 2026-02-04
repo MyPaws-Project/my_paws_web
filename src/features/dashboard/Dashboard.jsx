@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getClients } from '../../services/clients/clients.service';
 import AppointmentsList from '../appointments/AppointmentsList';
+import './dashboard.css';
 
 function toMillis(ts) {
   if (!ts) return 0;
@@ -57,99 +58,57 @@ export default function Dashboard() {
   }, [clients]);
 
   return (
-    <div style={{ padding: 16 }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'end',
-          gap: 12,
-          flexWrap: 'wrap',
-          marginBottom: 12,
-        }}
-      >
+    <div className="dashboard-page">
+      <header className="dashboard-header">
         <div>
-          <h1 style={{ margin: 0 }}>Dashboard</h1>
-          <p style={{ margin: '6px 0 0', opacity: 0.8 }}>
+          <h1 className="dashboard-title">Inicio</h1>
+          <p className="dashboard-subtitle">
             Clientes activos: <b>{activeCount}</b>
           </p>
         </div>
+      </header>
 
-        <button onClick={() => navigate('/clients')}>
-          Ver todos los clientes
-        </button>
-      </div>
-
-      <div style={{ padding: 16, border: '1px solid #ddd', borderRadius: 10 }}>
-        <h3 style={{ margin: 0 }}>Clientes recientes</h3>
-
-        {error ? (
-          <p style={{ color: 'crimson', marginTop: 10 }}>{error}</p>
-        ) : null}
-
-        {recentClients.length === 0 ? (
-          <p style={{ marginTop: 12, opacity: 0.75 }}>
-            No hay clientes para mostrar.
-          </p>
-        ) : (
-          <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-            {recentClients.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => navigate(`/clients/${c.id}`)}
-                style={{
-                  textAlign: 'left',
-                  padding: 12,
-                  border: '1px solid #eee',
-                  borderRadius: 10,
-                  background: 'white',
-                  cursor: 'pointer',
-                  width: '100%',
-                  color: '#111',
-                }}
-                title="Abrir módulo Clientes"
-              >
-                <div style={{ fontWeight: 700 }}>
-                  {c.fullName || 'Sin nombre'}{' '}
-                  <span style={{ fontWeight: 400, opacity: 0.7, fontSize: 12 }}>
-                    · {c.active === false ? 'Inactivo' : 'Activo'}
-                  </span>
-                </div>
-                <div style={{ fontSize: 13, opacity: 0.8 }}>
-                  {c.email || c.phone || 'Sin contacto'}
-                </div>
-              </button>
-            ))}
+      <div className="dashboard-grid">
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Clientes recientes</h3>
+            <button className="btn-primary" onClick={() => navigate('/clients')}>
+              Ver todos los clientes
+            </button>
           </div>
-        )}
-      </div>
 
-      <div
-        style={{
-          marginTop: 12,
-          padding: 16,
-          border: '1px solid #ddd',
-          borderRadius: 10,
-        }}
-      >
-      <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 8,
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          <h3 style={{ margin: 0 }}>Consultas de hoy</h3>
+          {error && <p style={{ color: 'crimson' }}>{error}</p>}
 
-          <button onClick={() => navigate('/calendar')}>
-            Ver calendario
-          </button>
+          {recentClients.length === 0 ? (
+            <p className="dashboard-subtitle">No hay clientes para mostrar.</p>
+          ) : (
+            <div className="client-list">
+              {recentClients.map((c) => (
+                <button
+                  key={c.id}
+                  className="client-item"
+                  onClick={() => navigate(`/clients/${c.id}`)}
+                >
+                  <div className="client-name">
+                    {c.fullName || 'Sin nombre'} · {c.active === false ? 'Inactivo' : 'Activo'}
+                  </div>
+                  <div className="client-meta">{c.email || c.phone || 'Sin contacto'}</div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        <AppointmentsList />
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Consultas de hoy</h3>
+            <button className="btn-primary" onClick={() => navigate('/calendar')}>
+              Ver calendario
+            </button>
+          </div>
+
+          <AppointmentsList />
+        </div>
       </div>
     </div>
   );

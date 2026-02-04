@@ -1,9 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Timestamp } from "firebase/firestore";
 import { auth } from "../../services/firebase/firebase";
 import { createAppointment } from "../../services/appointments/appointments.service";
 import { getClients } from "../../services/clients/clients.service";
+import "./appointmentForm.css";
+
+function safeDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatHour(d) {
+  if (!d) return "-";
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDay(d) {
+  if (!d) return "-";
+  return d.toLocaleDateString([], {
+    weekday: "long",
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
+}
 
 export default function AppointmentForm() {
   const navigate = useNavigate();
@@ -12,6 +34,9 @@ export default function AppointmentForm() {
 
   const start = params.get("start");
   const end = params.get("end");
+
+  const startDate = useMemo(() => safeDate(start), [start]);
+  const endDate = useMemo(() => safeDate(end), [end]);
 
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState("");
@@ -32,7 +57,6 @@ export default function AppointmentForm() {
         const active = (data || []).filter((c) => c.active !== false);
 
         setClients(active);
-
         if (active.length) setClientId(active[0].id);
       } catch (e) {
         console.error(e);
@@ -64,10 +88,7 @@ export default function AppointmentForm() {
       return;
     }
 
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-
-    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    if (!startDate || !endDate) {
       setError("Fecha inválida.");
       return;
     }
@@ -95,65 +116,78 @@ export default function AppointmentForm() {
     }
   };
 
+  const dayLabel = formatDay(startDate);
+  const timeLabel = `${formatHour(startDate)} – ${formatHour(endDate)}`;
+
   return (
-    <div style={{ padding: 16 }}>
-      <h2 style={{ marginTop: 0 }}>Nuevo turno</h2>
+    <div className="af-page">
+      <button className="af-back" onClick={() => navigate(-1)} disabled={saving}>
+        ← Volver
+      </button>
 
-      <p style={{ opacity: 0.8 }}>
-        Start: <b>{start || "-"}</b>
-        <br />
-        End: <b>{end || "-"}</b>
-      </p>
+      <h1 className="af-title">Nuevo turno</h1>
 
-      <div style={{ display: "grid", gap: 10, maxWidth: 420 }}>
-        <label>
-          Cliente
-          <select
-            value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
-            disabled={loadingClients || saving}
-            style={{ width: "100%" }}
-          >
-            {clients.length === 0 ? (
-              <option value="">(No hay clientes activos)</option>
-            ) : (
-              clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.fullName || "(Sin nombre)"}
-                </option>
-              ))
-            )}
-          </select>
-        </label>
+      <div className="af-meta card">
+        <div className="af-meta-day">{dayLabel}</div>
+        <div className="af-meta-time">{timeLabel}</div>
+      </div>
 
-        <label>
-          Motivo
-          <input
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            style={{ width: "100%" }}
-            disabled={saving}
-          />
-        </label>
+      <div className="card af-form">
+        <div className="af-grid">
+          <div className="af-field af-span-2">
+            <label className="af-label">Cliente</label>
+            <select
+              className="af-input"
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              disabled={loadingClients || saving}
+            >
+              {clients.length === 0 ? (
+                <option value="">(No hay clientes activos)</option>
+              ) : (
+                clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.fullName || "(Sin nombre)"}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
 
-        <label>
-          Notas
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            style={{ width: "100%" }}
-            disabled={saving}
-          />
-        </label>
+          <div className="af-field af-span-2">
+            <label className="af-label">Motivo</label>
+            <input
+              className="af-input"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              disabled={saving}
+            />
+          </div>
 
-        {error && <p style={{ color: "crimson" }}>{error}</p>}
+          <div className="af-field af-span-2">
+            <label className="af-label">Notas</label>
+            <textarea
+              className="af-textarea"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              disabled={saving}
+            />
+          </div>
+        </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => navigate(-1)} disabled={saving}>
-            Volver
+        {error ? <p className="af-error">{error}</p> : null}
+
+        <div className="af-actions">
+          <button className="btn-secondary" onClick={() => navigate(-1)} disabled={saving}>
+            Cancelar
           </button>
-          <button onClick={handleCreate} disabled={saving || loadingClients}>
+
+          <button
+            className="btn-primary"
+            onClick={handleCreate}
+            disabled={saving || loadingClients}
+          >
             {saving ? "Creando…" : "Crear turno"}
           </button>
         </div>

@@ -5,6 +5,7 @@ import {
   getHistoryEntry,
   updateHistoryEntry,
 } from '../../../services/pets/medicalHistory.service';
+import './medicalHistoryForm.css';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -90,80 +91,94 @@ export default function MedicalHistoryForm() {
   };
 
   return (
-    <div style={{ padding: 16, maxWidth: 640 }}>
+    <div className="mhf-page">
       <button
+        className="mhf-back"
         onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
         disabled={loading}
       >
         ← Volver al historial
       </button>
 
-      <h2 style={{ marginTop: 12 }}>
-        {isEdit ? 'Editar consulta' : 'Nueva consulta'}
-      </h2>
+      <h1 className="mhf-title">{isEdit ? 'Editar consulta' : 'Nueva consulta'}</h1>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12 }}>
-        <label style={{ display: 'grid', gap: 6 }}>
-          Fecha
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-          />
-        </label>
+      {error ? <p className="mhf-error">{error}</p> : null}
 
-        <label style={{ display: 'grid', gap: 6 }}>
-          Motivo (obligatorio)
-          <input
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            required
-          />
-        </label>
+      <div className="card mhf-form">
+        <form onSubmit={handleSubmit}>
+          <div className="mhf-grid">
+            <label className="mhf-field">
+              <span className="mhf-label">Fecha</span>
+              <input
+                className="mhf-input"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </label>
 
-        <label style={{ display: 'grid', gap: 6 }}>
-          Diagnóstico
-          <input
-            value={diagnosis}
-            onChange={(e) => setDiagnosis(e.target.value)}
-          />
-        </label>
+            <label className="mhf-field">
+              <span className="mhf-label">Motivo (obligatorio)</span>
+              <input
+                className="mhf-input"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </label>
 
-        <label style={{ display: 'grid', gap: 6 }}>
-          Tratamiento / Indicaciones
-          <textarea
-            value={treatment}
-            onChange={(e) => setTreatment(e.target.value)}
-            rows={3}
-          />
-        </label>
+            <label className="mhf-field mhf-span-2">
+              <span className="mhf-label">Diagnóstico</span>
+              <input
+                className="mhf-input"
+                value={diagnosis}
+                onChange={(e) => setDiagnosis(e.target.value)}
+                disabled={loading}
+              />
+            </label>
 
-        <label style={{ display: 'grid', gap: 6 }}>
-          Notas
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-          />
-        </label>
+            <label className="mhf-field mhf-span-2">
+              <span className="mhf-label">Tratamiento / Indicaciones</span>
+              <textarea
+                className="mhf-textarea"
+                value={treatment}
+                onChange={(e) => setTreatment(e.target.value)}
+                rows={4}
+                disabled={loading}
+              />
+            </label>
 
-        {error ? <p style={{ color: 'crimson', margin: 0 }}>{error}</p> : null}
+            <label className="mhf-field mhf-span-2">
+              <span className="mhf-label">Notas</span>
+              <textarea
+                className="mhf-textarea"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={4}
+                disabled={loading}
+              />
+            </label>
+          </div>
 
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Guardando…' : 'Guardar'}
-          </button>
+          <div className="mhf-actions">
+            <button className="btn-primary" type="submit" disabled={loading}>
+              {loading ? 'Guardando…' : 'Guardar'}
+            </button>
 
-          <button
-            type="button"
-            onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
-            disabled={loading}
-          >
-            Cancelar
-          </button>
-        </div>
-      </form>
+            <button
+              className="btn-secondary"
+              type="button"
+              onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getClientById } from '../../services/clients/clients.service';
 import { getPetsByClient } from '../../services/pets/pets.service';
+import './clientDetails.css';
 
 export default function ClientDetails() {
   const { id } = useParams();
@@ -77,107 +78,109 @@ export default function ClientDetails() {
     };
   }, [id]);
 
-  if (loading) return <div style={{ padding: 16 }}>Cargando…</div>;
+  if (loading) return <div className="cd-status">Cargando…</div>;
 
   if (error) {
     return (
-      <div style={{ padding: 16 }}>
-        <p style={{ color: 'crimson' }}>{error}</p>
-        <button onClick={() => navigate('/clients')}>Volver</button>
+      <div className="cd-page">
+        <div className="cd-status">
+          <p className="cd-error">{error}</p>
+          <button className="btn-secondary" onClick={() => navigate('/clients')}>
+            Volver
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 720 }}>
-      <button onClick={() => navigate('/clients')}>← Volver</button>
+    <div className="cd-page">
+      <button className="cd-back" onClick={() => navigate('/clients')}>
+        ← Volver
+      </button>
 
-      <h1 style={{ marginTop: 12 }}>{client.fullName || 'Sin nombre'}</h1>
-
-      <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-        <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-          <b>Email:</b> {client.email || '—'}
-        </div>
-
-        <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-          <b>Teléfono:</b> {client.phone || '—'}
-        </div>
-
-        <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-          <b>Estado:</b> {client.active === false ? 'Inactivo' : 'Activo'}
-        </div>
-
-        {client.address ? (
-          <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-            <b>Dirección:</b> {client.address}
+      <header className="cd-header">
+        <div className="cd-titlewrap">
+          <h1 className="cd-title">{client?.fullName || 'Sin nombre'}</h1>
+          <div className="cd-subline">
+            <span className={`pill ${client?.active === false ? 'pill-off' : 'pill-on'}`}>
+              {client?.active === false ? 'Inactivo' : 'Activo'}
+            </span>
           </div>
-        ) : null}
+        </div>
+      </header>
 
-        {client.notes ? (
-          <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-            <b>Notas:</b> {client.notes}
+      <section className="card cd-card">
+        <div className="cd-grid">
+          <div className="cd-item">
+            <div className="cd-label">Email</div>
+            <div className="cd-value">{client?.email || '—'}</div>
           </div>
-        ) : null}
-      </div>
 
-      <div style={{ marginTop: 24 }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 12,
-          }}
-        >
-          <h2 style={{ margin: 0 }}>Mascotas</h2>
+          <div className="cd-item">
+            <div className="cd-label">Teléfono</div>
+            <div className="cd-value">{client?.phone || '—'}</div>
+          </div>
 
-          <button onClick={() => navigate(`/clients/${id}/pets/new`)}>
+          {client?.address ? (
+            <div className="cd-item cd-span-2">
+              <div className="cd-label">Dirección</div>
+              <div className="cd-value">{client.address}</div>
+            </div>
+          ) : null}
+
+          {client?.notes ? (
+            <div className="cd-item cd-span-2">
+              <div className="cd-label">Notas</div>
+              <div className="cd-value">{client.notes}</div>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="card cd-card">
+        <div className="card-header">
+          <h3 className="card-title">Mascotas</h3>
+          <button
+            className="btn-primary"
+            onClick={() => navigate(`/clients/${id}/pets/new`)}
+          >
             + Nueva mascota
           </button>
         </div>
 
-        <div style={{ marginTop: 12, display: 'grid', gap: 10 }}>
-          {petsLoading ? <div>Cargando mascotas…</div> : null}
+        {petsLoading ? <div className="cd-muted">Cargando mascotas…</div> : null}
+        {petsError ? <p className="cd-error">{petsError}</p> : null}
 
-          {petsError ? <p style={{ color: 'crimson' }}>{petsError}</p> : null}
+        {!petsLoading && !petsError && pets.length === 0 ? (
+          <div className="cd-empty">
+            Este cliente todavía no tiene mascotas registradas.
+          </div>
+        ) : null}
 
-          {!petsLoading && !petsError && pets.length === 0 ? (
-            <div style={{ padding: 12, border: '1px solid #ddd', borderRadius: 10 }}>
-              Este cliente todavía no tiene mascotas registradas.
-            </div>
-          ) : null}
-
-          {!petsLoading &&
-            !petsError &&
-            pets.length > 0 &&
-            pets.map((pet) => (
-              <div
-                key={pet.id}
-                style={{
-                  padding: 12,
-                  border: '1px solid #ddd',
-                  borderRadius: 10,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <div>
-                  <b>{pet.name || 'Sin nombre'}</b>
-                  <div style={{ fontSize: 14, opacity: 0.8 }}>
+        {!petsLoading && !petsError && pets.length > 0 ? (
+          <div className="cd-pets">
+            {pets.map((pet) => (
+              <div key={pet.id} className="cd-petrow">
+                <div className="cd-petmain">
+                  <div className="cd-petname">{pet.name || 'Sin nombre'}</div>
+                  <div className="cd-petmeta">
                     {pet.species ? pet.species : '—'}
                     {pet.breed ? ` • ${pet.breed}` : ''}
                   </div>
                 </div>
 
-                <button onClick={() => navigate(`/clients/${id}/pets/${pet.id}`)}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => navigate(`/clients/${id}/pets/${pet.id}`)}
+                >
                   Ver
                 </button>
               </div>
             ))}
-        </div>
-      </div>
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }

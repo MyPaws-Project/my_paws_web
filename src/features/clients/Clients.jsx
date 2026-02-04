@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getClients,
@@ -7,6 +7,7 @@ import {
   disableClient,
 } from '../../services/clients/clients.service';
 import ClientForm from './ClientForm';
+import './clients.css';
 
 export default function Clients() {
   const navigate = useNavigate();
@@ -102,49 +103,72 @@ export default function Clients() {
     }
   };
 
-  const visibleClients = clients.filter((c) =>
-    showInactive ? c.active === false : c.active !== false
-  );
+  const visibleClients = useMemo(() => {
+    return clients.filter((c) => (showInactive ? c.active === false : c.active !== false));
+  }, [clients, showInactive]);
+
+  const openCreate = () => {
+    setEditingClient(null);
+    setShowForm(true);
+  };
+
+  const cancelForm = () => {
+    setShowForm(false);
+    setEditingClient(null);
+  };
+
+  const startEdit = (c) => {
+    setShowForm(false);
+    setEditingClient(c);
+  };
 
   return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-        }}
-      >
-        <h1 style={{ margin: 0 }}>Clientes</h1>
+    <div className="clients-page">
+      <header className="clients-header">
+        <div className="clients-titlewrap">
+          <h1 className="clients-title">Clientes</h1>
+          <p className="clients-subtitle">
+            {showInactive ? 'Listado de clientes inactivos.' : 'Listado de clientes activos.'}
+          </p>
+        </div>
 
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => setShowInactive((v) => !v)} disabled={saving}>
+        <div className="clients-actions">
+          <button
+            className="btn-secondary"
+            onClick={() => setShowInactive((v) => !v)}
+            disabled={saving}
+          >
             {showInactive ? 'Ver activos' : 'Ver inactivos'}
           </button>
 
-          <button
-            onClick={() => {
-              setEditingClient(null);
-              setShowForm((v) => !v);
-            }}
-            disabled={saving}
-          >
-            {showForm ? 'Cancelar' : 'Nuevo cliente'}
+          <button className="btn-primary" onClick={openCreate} disabled={saving}>
+            Nuevo cliente
           </button>
         </div>
-      </div>
+      </header>
 
-      {showForm && !editingClient && (
-        <div style={{ marginTop: 16 }}>
+      {(showForm && !editingClient) && (
+        <section className="card clients-card">
+          <div className="card-header">
+            <h3 className="card-title">Nuevo cliente</h3>
+            <button className="btn-secondary" onClick={cancelForm} disabled={saving}>
+              Cancelar
+            </button>
+          </div>
+
           <ClientForm onSubmit={handleCreate} loading={saving} />
-        </div>
+        </section>
       )}
 
       {editingClient && (
-        <div style={{ marginTop: 16 }}>
-          <div style={{ marginBottom: 8 }}>
-            <strong>Editando:</strong> {editingClient.fullName || '(Sin nombre)'}
+        <section className="card clients-card">
+          <div className="card-header">
+            <h3 className="card-title">
+              Editando: {editingClient.fullName || '(Sin nombre)'}
+            </h3>
+            <button className="btn-secondary" onClick={cancelForm} disabled={saving}>
+              Cancelar
+            </button>
           </div>
 
           <ClientForm
@@ -152,87 +176,73 @@ export default function Clients() {
             loading={saving}
             initialValues={editingClient}
           />
-
-          <div style={{ marginTop: 8 }}>
-            <button onClick={() => setEditingClient(null)} disabled={saving}>
-              Cancelar edición
-            </button>
-          </div>
-        </div>
+        </section>
       )}
 
-      {loading && <p style={{ marginTop: 16 }}>Cargando…</p>}
-
-      {error && <p style={{ marginTop: 16, color: 'crimson' }}>{error}</p>}
+      {loading && <p className="clients-status">Cargando…</p>}
+      {error && <p className="clients-error">{error}</p>}
 
       {!loading && !error && (
-        <ul style={{ marginTop: 16 }}>
-          {visibleClients.length === 0 && (
-            <li>
-              {showInactive
-                ? 'No hay clientes inactivos.'
-                : 'No hay clientes activos.'}
-            </li>
-          )}
+        <section className="card clients-card">
+          <div className="card-header">
+            <h3 className="card-title">
+              {showInactive ? 'Clientes inactivos' : 'Clientes activos'}
+            </h3>
+            <span className="clients-count">{visibleClients.length}</span>
+          </div>
 
-          {visibleClients.map((c) => (
-            <li
-              key={c.id}
-              style={{ display: 'flex', alignItems: 'center', gap: 12 }}
-            >
-              <span style={{ flex: 1 }}>
-                {/* Mantiene la misma apariencia, pero ahora es clickeable */}
-                <button
-                  type="button"
-                  onClick={() => navigate(`/clients/${c.id}`)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    padding: 0,
-                    margin: 0,
-                    font: 'inherit',
-                    color: 'inherit',
-                    cursor: 'pointer',
-                  }}
-                  title="Ver información del cliente"
-                >
-                  <strong>{c.fullName || '(Sin nombre)'}</strong>
-                </button>
+          {visibleClients.length === 0 ? (
+            <p className="clients-empty">
+              {showInactive ? 'No hay clientes inactivos.' : 'No hay clientes activos.'}
+            </p>
+          ) : (
+            <div className="clients-list">
+              {visibleClients.map((c) => (
+                <div key={c.id} className="client-row">
+                  <button
+                    type="button"
+                    className="client-main"
+                    onClick={() => navigate(`/clients/${c.id}`)}
+                    title="Ver información del cliente"
+                  >
+                    <div className="client-name">
+                      {c.fullName || '(Sin nombre)'}
+                      <span className={`pill ${c.active === false ? 'pill-off' : 'pill-on'}`}>
+                        {c.active === false ? 'Inactivo' : 'Activo'}
+                      </span>
+                    </div>
 
-                <div style={{ fontSize: 14, opacity: 0.8 }}>
-                  {c.phone || 'Sin teléfono'}
-                  {c.email ? ` • ${c.email}` : ''}
+                    <div className="client-meta">
+                      {c.phone || 'Sin teléfono'}
+                      {c.email ? ` • ${c.email}` : ''}
+                    </div>
+                  </button>
+
+                  <div className="client-actions">
+                    <button className="btn-secondary" onClick={() => startEdit(c)} disabled={saving}>
+                      Editar
+                    </button>
+
+                    {showInactive ? (
+                      <button className="btn-primary" onClick={() => handleReactivate(c.id)} disabled={saving}>
+                        Reactivar
+                      </button>
+                    ) : (
+                      <button
+                        className="btn-danger"
+                        onClick={() => handleDisable(c.id)}
+                        disabled={saving || c.active === false}
+                        title={c.active === false ? 'Cliente desactivado' : 'Desactivar cliente'}
+                      >
+                        Desactivar
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </span>
-
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingClient(c);
-                }}
-                disabled={saving}
-              >
-                Editar
-              </button>
-
-              {showInactive ? (
-                <button onClick={() => handleReactivate(c.id)} disabled={saving}>
-                  Reactivar
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleDisable(c.id)}
-                  disabled={saving || c.active === false}
-                  title={
-                    c.active === false ? 'Cliente desactivado' : 'Desactivar cliente'
-                  }
-                >
-                  {c.active === false ? 'Desactivado' : 'Desactivar'}
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
+              ))}
+            </div>
+          )}
+        </section>
       )}
     </div>
   );

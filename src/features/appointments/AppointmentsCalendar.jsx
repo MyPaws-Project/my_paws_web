@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 
@@ -11,6 +11,70 @@ import { auth } from "../../services/firebase/firebase";
 import { listAppointmentsForVet } from "../../services/appointments/appointments.service";
 import { getClientById } from "../../services/clients/clients.service";
 
+import "./appointmentsCalendar.css";
+
+function toDateMaybe(ts) {
+  if (!ts) return null;
+  if (ts?.toDate) return ts.toDate();
+  if (ts instanceof Date) return ts;
+  const d = new Date(ts);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function normalizeStatus(s) {
+  const v = String(s || "scheduled").toLowerCase().trim();
+  if (["cancelled", "canceled"].includes(v)) return "cancelled";
+  if (["done", "completed", "complete", "finished"].includes(v)) return "done";
+  if (["scheduled", "confirmed", "pending"].includes(v)) return "scheduled";
+  return v || "scheduled";
+}
+
+function statusLabel(s) {
+  const v = normalizeStatus(s);
+  if (v === "scheduled") return "Programado";
+  if (v === "cancelled") return "Cancelado";
+  if (v === "done") return "Realizado";
+  return v;
+}
+
+function fmtTime(d) {
+  if (!d) return "";
+  try {
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return "";
+  }
+}
+
+function fmtDateOnly(d) {
+  if (!d) return "";
+  try {
+    return d.toLocaleDateString([], {
+      weekday: "long",
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+}
+
+function fmtRange(start, end) {
+  if (!start) return "";
+  const s = fmtTime(start);
+  const e = end ? fmtTime(end) : "";
+  return e ? `${s}–${e}` : s;
+}
+
+function ymd(date) {
+  const d = new Date(date);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function AppointmentsCalendar() {
   const navigate = useNavigate();
 
@@ -20,6 +84,7 @@ export default function AppointmentsCalendar() {
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
 
+  const [selectedAppt, setSelectedAppt] = useState(null);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u || null));
@@ -27,6 +92,8 @@ export default function AppointmentsCalendar() {
   }, []);
 
   useEffect(() => {
+    let alive = true;
+
     async function load() {
       if (!user?.uid) {
         setLoading(false);
@@ -59,30 +126,36 @@ export default function AppointmentsCalendar() {
 
         const evs = appts
           .map((a) => {
-            const start = a.startTime?.toDate ? a.startTime.toDate() : null;
-            const end = a.endTime?.toDate ? a.endTime.toDate() : null;
+            const start = toDateMaybe(a.startTime);
+            const end = toDateMaybe(a.endTime);
             if (!start) return null;
 
             const clientName = a.clientId
               ? clientMap[a.clientId] || "Cliente"
               : "Cliente";
 
+            const reason = a.reason || "Consulta";
+            const status = normalizeStatus(a.status || "scheduled");
+
             return {
               id: a.id,
               title: clientName,
               start,
               end: end || undefined,
+              classNames: [`ac-ev--${status}`],
               extendedProps: {
-                reason: a.reason || "Consulta",
-                status: a.status || "scheduled",
+                reason,
+                status,
                 notes: a.notes || "",
                 clientId: a.clientId || null,
                 petId: a.petId || null,
+                clientName,
               },
             };
           })
           .filter(Boolean);
 
+        if (!alive) return;
         setEvents(evs);
       } catch (e) {
         console.error("ERROR cargando calendario:", e);
@@ -91,76 +164,67 @@ export default function AppointmentsCalendar() {
           setError(
             "El índice del calendario se está creando en Firebase. Esperá un momento y tocá Reintentar."
           );
-        } else if (msg.includes("index")) {
-          setError(
-            "Falta crear un índice en Firestore para el calendario."
-          );
+        } else if (msg.toLowerCase().includes("index")) {
+          setError("Falta crear un índice en Firestore para el calendario.");
         } else {
           setError(msg || "No se pudo cargar el calendario.");
         }
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     }
 
     load();
+
+    return () => {
+      alive = false;
+    };
   }, [user?.uid, reloadKey]);
 
-  if (loading) return <p>Cargando calendario...</p>;
-  if (!user?.uid) return <p>Tenés que iniciar sesión.</p>;
+  const nowScrollTime = useMemo(() => {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}:00`;
+  }, []);
+
+  const countByDay = useMemo(() => {
+    const map = {};
+    for (const e of events) {
+      if (!e?.start) continue;
+      const key = ymd(e.start);
+      map[key] = (map[key] || 0) + 1;
+    }
+    return map;
+  }, [events]);
+
+  if (loading) return <p className="ac-status">Cargando calendario...</p>;
+  if (!user?.uid) return <p className="ac-status">Tenés que iniciar sesión.</p>;
 
   return (
-    <div style={{ padding: 16 }}>
-      {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-          flexWrap: "wrap",
-          marginBottom: 10,
-        }}
-      >
-        <div>
-          <h2 style={{ margin: 0 }}>Calendario de turnos</h2>
-          <p style={{ margin: "6px 0 0", opacity: 0.75 }}>
-            {events.length} turno(s) · Horario 08:00–20:00
+    <div className="ac-page">
+      <div className="ac-header">
+        <div className="ac-headings">
+          <h1 className="ac-title">Calendario de turnos</h1>
+          <p className="ac-subtitle">
+            {events.length} turno(s) · Horario 08:00–20:00 · Click en un turno para ver detalles
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => navigate("/dashboard")}>Volver</button>
-            <button onClick={() => setReloadKey((k) => k + 1)}>Reintentar</button>
-            <button onClick={() => navigate("/appointments/new")}>
-                + Nuevo turno
-            </button>
+        <div className="ac-actions">
+          <button className="btn-secondary" onClick={() => navigate("/dashboard")}>
+            Volver
+          </button>
+
+          <button className="btn-secondary" onClick={() => setReloadKey((k) => k + 1)}>
+            Reintentar
+          </button>
         </div>
       </div>
 
-      {error ? (
-        <div
-          style={{
-            border: "1px solid #ffd6d6",
-            background: "#fff5f5",
-            color: "#b00020",
-            padding: 10,
-            borderRadius: 10,
-            marginBottom: 10,
-          }}
-        >
-          {error}
-        </div>
-      ) : null}
+      {error ? <div className="ac-error">{error}</div> : null}
 
-      <div
-        style={{
-          border: "1px solid #ddd",
-          borderRadius: 12,
-          padding: 10,
-          background: "white",
-        }}
-      >
+      <div className="card ac-calendar">
         <FullCalendar
           plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
           initialView="timeGridWeek"
@@ -181,7 +245,62 @@ export default function AppointmentsCalendar() {
           selectable={true}
           selectMirror={true}
           events={events}
+          scrollTime={nowScrollTime}
+          moreLinkClick="popover"
+          fixedWeekCount={false}
+          views={{
+            dayGridMonth: {
+              dayMaxEvents: 0,
+            },
+          }}
+          dayCellContent={(arg) => {
+            const n = arg.dayNumberText;
+            const key = ymd(arg.date);
+            const count = countByDay[key] || 0;
 
+            return (
+              <div className="ac-daycell">
+                <div className="ac-daynum">{n}</div>
+                {count > 0 ? (
+                  <div className="ac-daybadge">{count} turnos</div>
+                ) : null}
+              </div>
+            );
+          }}
+          eventClick={(info) => {
+            info.jsEvent.preventDefault();
+
+            const ev = info.event;
+            const props = ev.extendedProps || {};
+
+            setSelectedAppt({
+              id: ev.id,
+              start: ev.start,
+              end: ev.end,
+              reason: props.reason || "Consulta",
+              status: normalizeStatus(props.status || "scheduled"),
+              notes: props.notes || "",
+              clientId: props.clientId || null,
+              petId: props.petId || null,
+              clientName: props.clientName || ev.title || "Cliente",
+            });
+          }}
+          eventContent={(arg) => {
+            const props = arg.event.extendedProps || {};
+            const clientName = props.clientName || arg.event.title || "Cliente";
+            const reason = props.reason || "Consulta";
+
+            const start = arg.event.start;
+            const end = arg.event.end;
+
+            return (
+              <div className="fc-appt">
+                <div className="fc-appt-time">{fmtRange(start, end)}</div>
+                <div className="fc-appt-title">{clientName}</div>
+                <div className="fc-appt-reason">{reason}</div>
+              </div>
+            );
+          }}
           dateClick={(info) => {
             const start = info.date;
             const end = new Date(start.getTime() + 30 * 60 * 1000);
@@ -191,7 +310,6 @@ export default function AppointmentsCalendar() {
               )}&end=${encodeURIComponent(end.toISOString())}`
             );
           }}
-
           select={(info) => {
             navigate(
               `/appointments/new?start=${encodeURIComponent(
@@ -199,20 +317,80 @@ export default function AppointmentsCalendar() {
               )}&end=${encodeURIComponent(info.end.toISOString())}`
             );
           }}
-
-          eventDidMount={(info) => {
-            const { reason, status } = info.event.extendedProps || {};
-            const parts = [];
-            if (reason) parts.push(reason);
-            if (status) parts.push(`Estado: ${status}`);
-            if (parts.length) info.el.title = parts.join(" · ");
-          }}
         />
       </div>
 
-      <p style={{ marginTop: 10, opacity: 0.65, fontSize: 12 }}>
-        Haz click sobre una hora libre para crear un turno.
-      </p>
+      <p className="ac-help">Haz click sobre una hora libre para crear un turno.</p>
+
+      {selectedAppt ? (
+        <div
+          className="ac-modal-backdrop"
+          onClick={() => setSelectedAppt(null)}
+          role="presentation"
+        >
+          <div
+            className="ac-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="ac-modal-head">
+              <div>
+                <div className="ac-modal-title">{selectedAppt.clientName}</div>
+                <div className="ac-modal-sub">
+                  {fmtDateOnly(selectedAppt.start)}
+                  {selectedAppt.start
+                    ? ` · ${fmtRange(selectedAppt.start, selectedAppt.end)}`
+                    : ""}
+                </div>
+              </div>
+
+              <button className="ac-modal-close" onClick={() => setSelectedAppt(null)}>
+                ✕
+              </button>
+            </div>
+
+            <div className="ac-modal-body">
+              <div className="ac-kv">
+                <span>Motivo</span>
+                <strong>{selectedAppt.reason}</strong>
+              </div>
+
+              <div className="ac-kv">
+                <span>Estado</span>
+                <strong className={`ac-status-pill ac-status-${selectedAppt.status}`}>
+                  {statusLabel(selectedAppt.status)}
+                </strong>
+              </div>
+
+              {selectedAppt.notes ? (
+                <div className="ac-notes">
+                  <div className="ac-notes-label">Notas</div>
+                  <div className="ac-notes-box">{selectedAppt.notes}</div>
+                </div>
+              ) : null}
+
+              <div className="ac-modal-actions">
+                {selectedAppt.clientId ? (
+                  <button
+                    className="btn-secondary"
+                    onClick={() => navigate(`/clients/${selectedAppt.clientId}`)}
+                  >
+                    Ver cliente
+                  </button>
+                ) : null}
+
+                <button
+                  className="btn-primary"
+                  onClick={() => navigate(`/appointments/${selectedAppt.id}/edit`)}
+                >
+                  Editar turno
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

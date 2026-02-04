@@ -1,0 +1,170 @@
+:root {
+  --green-dark: #5c9e3f;
+  --text: #1f2a1f;
+  --muted: rgba(0, 0, 0, 0.6);
+  --card: #ffffff;
+  --border: rgba(0, 0, 0, 0.12);
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
+}
+
+.af-page {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.af-back {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.af-back:hover {
+  color: var(--text);
+}
+
+.af-title {
+  margin: 12px 0 0 0;
+  font-size: 1.65rem;
+  font-weight: 900;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.af-meta {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.af-meta-day {
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+.af-meta-time {
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.af-form {
+  margin-top: 12px;
+}
+
+.af-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.af-field {
+  display: grid;
+  gap: 6px;
+}
+
+.af-span-2 {
+  grid-column: span 2;
+}
+
+.af-label {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.af-input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+  font-weight: 650;
+  outline: none;
+  background: white;
+}
+
+.af-input:focus {
+  border-color: rgba(92, 158, 63, 0.6);
+  box-shadow: 0 0 0 3px rgba(92, 158, 63, 0.15);
+}
+
+.af-textarea {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+  font-weight: 650;
+  outline: none;
+  background: white;
+  resize: vertical;
+}
+
+.af-textarea:focus {
+  border-color: rgba(92, 158, 63, 0.6);
+  box-shadow: 0 0 0 3px rgba(92, 158, 63, 0.15);
+}
+
+.af-error {
+  margin: 12px 0 0 0;
+  color: crimson;
+  font-weight: 900;
+}
+
+.af-actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--green-dark);
+  color: white;
+}
+
+.btn-primary:hover {
+  opacity: 0.95;
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+@media (max-width: 820px) {
+  .af-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .af-span-2 {
+    grid-column: auto;
+  }
+}
