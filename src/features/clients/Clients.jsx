@@ -9,6 +9,14 @@ import {
 import ClientForm from './ClientForm';
 import './clients.css';
 
+const normalize = (s) =>
+  (s ?? '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
 export default function Clients() {
   const navigate = useNavigate();
 
@@ -19,13 +27,14 @@ export default function Clients() {
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [showInactive, setShowInactive] = useState(false);
+  const [search, setSearch] = useState('');
 
   const loadClients = async () => {
     setLoading(true);
     setError('');
     try {
       const data = await getClients();
-      setClients(data);
+      setClients(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err?.message || 'Error cargando clientes');
     } finally {
@@ -104,8 +113,18 @@ export default function Clients() {
   };
 
   const visibleClients = useMemo(() => {
-    return clients.filter((c) => (showInactive ? c.active === false : c.active !== false));
-  }, [clients, showInactive]);
+    const list = clients.filter((c) => (showInactive ? c.active === false : c.active !== false));
+
+    const q = normalize(search);
+    if (!q) return list;
+
+    return list.filter((c) => {
+      const fullName = normalize(c.fullName);
+      const phone = normalize(c.phone);
+      const email = normalize(c.email);
+      return fullName.includes(q) || phone.includes(q) || email.includes(q);
+    });
+  }, [clients, showInactive, search]);
 
   const openCreate = () => {
     setEditingClient(null);
@@ -122,6 +141,11 @@ export default function Clients() {
     setEditingClient(c);
   };
 
+  const toggleInactive = () => {
+    setShowInactive((v) => !v);
+    setSearch('');
+  };
+
   return (
     <div className="clients-page">
       <header className="clients-header">
@@ -133,11 +157,15 @@ export default function Clients() {
         </div>
 
         <div className="clients-actions">
-          <button
-            className="btn-secondary"
-            onClick={() => setShowInactive((v) => !v)}
-            disabled={saving}
-          >
+          <input
+            className="clients-search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar"
+            disabled={saving || loading}
+          />
+
+          <button className="btn-secondary" onClick={toggleInactive} disabled={saving}>
             {showInactive ? 'Ver activos' : 'Ver inactivos'}
           </button>
 
@@ -147,7 +175,7 @@ export default function Clients() {
         </div>
       </header>
 
-      {(showForm && !editingClient) && (
+      {showForm && !editingClient && (
         <section className="card clients-card">
           <div className="card-header">
             <h3 className="card-title">Nuevo cliente</h3>
@@ -163,19 +191,13 @@ export default function Clients() {
       {editingClient && (
         <section className="card clients-card">
           <div className="card-header">
-            <h3 className="card-title">
-              Editando: {editingClient.fullName || '(Sin nombre)'}
-            </h3>
+            <h3 className="card-title">Editando: {editingClient.fullName || '(Sin nombre)'}</h3>
             <button className="btn-secondary" onClick={cancelForm} disabled={saving}>
               Cancelar
             </button>
           </div>
 
-          <ClientForm
-            onSubmit={handleUpdate}
-            loading={saving}
-            initialValues={editingClient}
-          />
+          <ClientForm onSubmit={handleUpdate} loading={saving} initialValues={editingClient} />
         </section>
       )}
 
@@ -185,15 +207,17 @@ export default function Clients() {
       {!loading && !error && (
         <section className="card clients-card">
           <div className="card-header">
-            <h3 className="card-title">
-              {showInactive ? 'Clientes inactivos' : 'Clientes activos'}
-            </h3>
+            <h3 className="card-title">{showInactive ? 'Clientes inactivos' : 'Clientes activos'}</h3>
             <span className="clients-count">{visibleClients.length}</span>
           </div>
 
           {visibleClients.length === 0 ? (
             <p className="clients-empty">
-              {showInactive ? 'No hay clientes inactivos.' : 'No hay clientes activos.'}
+              {search
+                ? 'No hay resultados para esa búsqueda.'
+                : showInactive
+                ? 'No hay clientes inactivos.'
+                : 'No hay clientes activos.'}
             </p>
           ) : (
             <div className="clients-list">
@@ -224,7 +248,11 @@ export default function Clients() {
                     </button>
 
                     {showInactive ? (
-                      <button className="btn-primary" onClick={() => handleReactivate(c.id)} disabled={saving}>
+                      <button
+                        className="btn-primary"
+                        onClick={() => handleReactivate(c.id)}
+                        disabled={saving}
+                      >
                         Reactivar
                       </button>
                     ) : (

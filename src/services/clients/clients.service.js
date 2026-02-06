@@ -8,13 +8,23 @@ import {
   serverTimestamp,
   updateDoc,
   doc,
+  where,
 } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
+
+import { db, auth } from '../firebase/firebase';
 
 const clientsCol = collection(db, 'clients');
 
 export async function getClients() {
-  const q = query(clientsCol, orderBy('createdAt', 'desc'));
+  const user = auth.currentUser;
+  if (!user) return [];
+
+  const q = query(
+    clientsCol,
+    where('clinicId', '==', user.uid),
+    orderBy('createdAt', 'desc')
+  );
+
   const snap = await getDocs(q);
 
   return snap.docs.map((d) => ({
@@ -24,20 +34,30 @@ export async function getClients() {
 }
 
 export async function getClientById(clientId) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Usuario no autenticado');
+
   const ref = doc(db, 'clients', clientId);
   const snap = await getDoc(ref);
 
   if (!snap.exists()) return null;
 
+  const data = snap.data();
+
+  if (data.clinicId !== user.uid) return null;
+
   return {
     id: snap.id,
-    ...snap.data(),
+    ...data,
   };
 }
 
-
 export async function createClient(data) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Usuario no autenticado');
+
   const payload = {
+    clinicId: user.uid,
     fullName: data.fullName ?? '',
     phone: data.phone ?? '',
     email: data.email ?? '',
@@ -45,6 +65,7 @@ export async function createClient(data) {
     notes: data.notes ?? '',
     active: true,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   };
 
   const ref = await addDoc(clientsCol, payload);
@@ -52,10 +73,15 @@ export async function createClient(data) {
 }
 
 export async function updateClient(clientId, data) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Usuario no autenticado');
+
   const ref = doc(db, 'clients', clientId);
 
+  const { clinicId, createdAt, ...safeData } = data ?? {};
+
   const payload = {
-    ...data,
+    ...safeData,
     updatedAt: serverTimestamp(),
   };
 
@@ -63,6 +89,13 @@ export async function updateClient(clientId, data) {
 }
 
 export async function disableClient(clientId) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Usuario no autenticado');
+
   const ref = doc(db, 'clients', clientId);
-  await updateDoc(ref, { active: false, updatedAt: serverTimestamp() });
+
+  await updateDoc(ref, {
+    active: false,
+    updatedAt: serverTimestamp(),
+  });
 }

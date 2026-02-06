@@ -47,6 +47,30 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+/* 🔍 BUSCADOR */
+.clients-search {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-width: 240px;
+  background: white;
+  color: var(--text);
+}
+
+.clients-search::placeholder {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.clients-search:focus {
+  outline: none;
+  border-color: var(--green-dark);
+  box-shadow: 0 0 0 2px rgba(92, 158, 63, 0.15);
 }
 
 .clients-status {
@@ -217,5 +241,9 @@
 
   .client-actions {
     justify-content: flex-end;
+  }
+
+  .clients-search {
+    width: 100%;
   }
 }

@@ -3,6 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { createPet, getPetById, updatePet } from '../../services/pets/pets.service';
 import './petForm.css';
 
+const toArray = (s) =>
+  (s ?? '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+
 export default function PetForm() {
   const { id: clientId, petId } = useParams();
   const isEdit = Boolean(petId);
@@ -15,6 +21,10 @@ export default function PetForm() {
     breed: '',
     sex: '',
     birthDate: '',
+    weightKg: '',
+    allergies: '',
+    chronicIllnesses: '',
+    currentMedication: '',
     notes: '',
   });
 
@@ -45,6 +55,10 @@ export default function PetForm() {
           breed: data.breed ?? '',
           sex: data.sex ?? '',
           birthDate: data.birthDate ?? '',
+          weightKg: data.weightKg ?? '',
+          allergies: Array.isArray(data.allergies) ? data.allergies.join(', ') : '',
+          chronicIllnesses: Array.isArray(data.chronicIllnesses) ? data.chronicIllnesses.join(', ') : '',
+          currentMedication: Array.isArray(data.currentMedication) ? data.currentMedication.join(', ') : '',
           notes: data.notes ?? '',
         });
       } catch (e) {
@@ -76,23 +90,30 @@ export default function PetForm() {
       return;
     }
 
+    const weightNum = form.weightKg === '' || form.weightKg == null ? null : Number(form.weightKg);
+
+    const payload = {
+      name: nameTrimmed,
+      species: form.species ?? '',
+      breed: form.breed ?? '',
+      sex: form.sex ?? '',
+      birthDate: form.birthDate ?? '',
+      weightKg: Number.isFinite(weightNum) ? weightNum : null,
+      allergies: toArray(form.allergies),
+      chronicIllnesses: toArray(form.chronicIllnesses),
+      currentMedication: toArray(form.currentMedication),
+      notes: form.notes ?? '',
+    };
+
     try {
       setError('');
       setSaving(true);
 
       if (isEdit) {
-        await updatePet(clientId, petId, {
-          ...form,
-          name: nameTrimmed,
-        });
-
+        await updatePet(clientId, petId, payload);
         navigate(`/clients/${clientId}/pets/${petId}`);
       } else {
-        const newId = await createPet(clientId, {
-          ...form,
-          name: nameTrimmed,
-        });
-
+        const newId = await createPet(clientId, payload);
         navigate(`/clients/${clientId}/pets/${newId}`);
       }
     } catch (err) {
@@ -114,7 +135,11 @@ export default function PetForm() {
       <div className="pf-page">
         <div className="pf-status">
           <p className="pf-error">{error}</p>
-          <button className="btn-secondary" onClick={() => navigate(`/clients/${clientId}`)} disabled={saving}>
+          <button
+            className="btn-secondary"
+            onClick={() => navigate(`/clients/${clientId}`)}
+            disabled={saving}
+          >
             Volver
           </button>
         </div>
@@ -153,6 +178,7 @@ export default function PetForm() {
               value={form.species}
               onChange={onChange}
               disabled={saving}
+              placeholder="Ej: dog / cat"
             />
           </div>
 
@@ -191,6 +217,56 @@ export default function PetForm() {
               value={form.birthDate}
               onChange={onChange}
               disabled={saving}
+            />
+          </div>
+
+          <div className="pf-field">
+            <label className="pf-label">Peso actual (kg)</label>
+            <input
+              className="pf-input"
+              type="number"
+              step="0.1"
+              name="weightKg"
+              value={form.weightKg}
+              onChange={onChange}
+              disabled={saving}
+              placeholder="Ej: 3.9"
+            />
+          </div>
+
+          <div className="pf-field pf-span-2">
+            <label className="pf-label">Alergias (separadas por coma)</label>
+            <input
+              className="pf-input"
+              name="allergies"
+              value={form.allergies}
+              onChange={onChange}
+              disabled={saving}
+              placeholder="Ej: pollo, polvo"
+            />
+          </div>
+
+          <div className="pf-field pf-span-2">
+            <label className="pf-label">Enfermedades crónicas (coma)</label>
+            <input
+              className="pf-input"
+              name="chronicIllnesses"
+              value={form.chronicIllnesses}
+              onChange={onChange}
+              disabled={saving}
+              placeholder="Ej: dermatitis, asma"
+            />
+          </div>
+
+          <div className="pf-field pf-span-2">
+            <label className="pf-label">Medicación actual (coma)</label>
+            <input
+              className="pf-input"
+              name="currentMedication"
+              value={form.currentMedication}
+              onChange={onChange}
+              disabled={saving}
+              placeholder="Ej: prednisona, omeprazol"
             />
           </div>
 

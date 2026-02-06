@@ -1,7 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getPetById, deletePet } from '../../services/pets/pets.service';
+import { getPetById, disablePet, reactivatePet } from '../../services/pets/pets.service';
 import './petDetails.css';
+
+const sexLabel = (sex) => {
+  if (sex === 'male') return 'Macho';
+  if (sex === 'female') return 'Hembra';
+  return '—';
+};
+
+const formatList = (arr) => {
+  if (!Array.isArray(arr) || arr.length === 0) return '—';
+  return arr.join(', ');
+};
 
 export default function PetDetails() {
   const { id: clientId, petId } = useParams();
@@ -11,6 +22,8 @@ export default function PetDetails() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const isInactive = useMemo(() => pet?.active === false, [pet]);
 
   useEffect(() => {
     let alive = true;
@@ -46,21 +59,38 @@ export default function PetDetails() {
     };
   }, [clientId, petId]);
 
-  const handleDelete = async () => {
-    const ok = window.confirm(
-      '¿Seguro que querés eliminar esta mascota? Esta acción no se puede deshacer.'
-    );
+  const handleDisable = async () => {
+    const ok = window.confirm('¿Seguro que querés desactivar esta mascota? Podés reactivarla luego.');
     if (!ok) return;
 
     try {
       setError('');
       setSaving(true);
 
-      await deletePet(clientId, petId);
+      await disablePet(clientId, petId);
 
+      setPet((prev) => (prev ? { ...prev, active: false } : prev));
       navigate(`/clients/${clientId}`);
     } catch (e) {
-      setError('No se pudo eliminar la mascota');
+      setError('No se pudo desactivar la mascota');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    const ok = window.confirm('¿Reactivar esta mascota?');
+    if (!ok) return;
+
+    try {
+      setError('');
+      setSaving(true);
+
+      await reactivatePet(clientId, petId);
+
+      setPet((prev) => (prev ? { ...prev, active: true } : prev));
+    } catch (e) {
+      setError('No se pudo reactivar la mascota');
     } finally {
       setSaving(false);
     }
@@ -96,13 +126,17 @@ export default function PetDetails() {
       </button>
 
       <header className="pd-header">
-        <h1 className="pd-title">{pet?.name || 'Sin nombre'}</h1>
+        <div>
+          <h1 className="pd-title">{pet?.name || 'Sin nombre'}</h1>
+          {isInactive ? <p className="pd-badge">Inactiva</p> : null}
+        </div>
 
         <div className="pd-actions">
           <button
             className="btn-primary"
             onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
-            disabled={saving}
+            disabled={saving || isInactive}
+            title={isInactive ? 'Reactivá la mascota para gestionar su historial' : undefined}
           >
             Historial médico
           </button>
@@ -115,9 +149,15 @@ export default function PetDetails() {
             Editar
           </button>
 
-          <button className="btn-danger" onClick={handleDelete} disabled={saving}>
-            Eliminar
-          </button>
+          {isInactive ? (
+            <button className="btn-secondary" onClick={handleReactivate} disabled={saving}>
+              Reactivar
+            </button>
+          ) : (
+            <button className="btn-danger" onClick={handleDisable} disabled={saving}>
+              Desactivar
+            </button>
+          )}
         </div>
       </header>
 
@@ -135,12 +175,35 @@ export default function PetDetails() {
 
           <div className="pd-item">
             <div className="pd-label">Sexo</div>
-            <div className="pd-value">{pet?.sex || '—'}</div>
+            <div className="pd-value">{sexLabel(pet?.sex)}</div>
           </div>
 
           <div className="pd-item">
             <div className="pd-label">Fecha de nacimiento</div>
             <div className="pd-value">{pet?.birthDate || '—'}</div>
+          </div>
+
+          <div className="pd-item">
+            <div className="pd-label">Peso actual</div>
+            <div className="pd-value">
+              {typeof pet?.weightKg === 'number' ? `${pet.weightKg} kg` : '—'}
+            </div>
+          </div>
+
+
+          <div className="pd-item pd-span-2">
+            <div className="pd-label">Alergias</div>
+            <div className="pd-value">{formatList(pet?.allergies)}</div>
+          </div>
+
+          <div className="pd-item pd-span-2">
+            <div className="pd-label">Enfermedades crónicas</div>
+            <div className="pd-value">{formatList(pet?.chronicIllnesses)}</div>
+          </div>
+
+          <div className="pd-item pd-span-2">
+            <div className="pd-label">Medicación actual</div>
+            <div className="pd-value">{formatList(pet?.currentMedication)}</div>
           </div>
 
           {pet?.notes ? (

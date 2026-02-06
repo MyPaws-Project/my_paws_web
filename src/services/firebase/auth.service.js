@@ -33,6 +33,7 @@ export const register = async (email, password, extra = {}) => {
 
   await setDoc(doc(db, 'publicUsers', uid), {
     clinicName: clinicName || '',
+    clinicAddress: clinicAddress || '',
     coordinates: coordinates ?? null,
     updatedAt: serverTimestamp(),
     active: true,
@@ -61,6 +62,7 @@ export const updateClinicProfile = async (extra = {}) => {
 
   await setDoc(doc(db, 'publicUsers', uid), {
     clinicName: clinicName || '',
+    clinicAddress: clinicAddress || '',
     coordinates: coordinates ?? null,
     updatedAt: serverTimestamp(),
     active: true,

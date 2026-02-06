@@ -20,11 +20,12 @@ const historyDoc = (clientId, petId, entryId) =>
 
 export async function createHistoryEntry(clientId, petId, data) {
   const payload = {
-    date: data.date || '',
-    reason: data.reason || '',
-    diagnosis: data.diagnosis || '',
-    treatment: data.treatment || '',
-    notes: data.notes || '',
+    date: (data?.date ?? '').trim(),
+    reason: (data?.reason ?? '').trim(),
+    diagnosis: (data?.diagnosis ?? '').trim(),
+    treatment: (data?.treatment ?? '').trim(),
+    notes: (data?.notes ?? '').trim(),
+    photos: Array.isArray(data?.photos) ? data.photos : [],
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -46,10 +47,14 @@ export async function getHistoryEntry(clientId, petId, entryId) {
 }
 
 export async function updateHistoryEntry(clientId, petId, entryId, data) {
-  await updateDoc(historyDoc(clientId, petId, entryId), {
+  const payload = {
     ...data,
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  delete payload.createdAt;
+
+  await updateDoc(historyDoc(clientId, petId, entryId), payload);
 }
 
 export async function deleteHistoryEntry(clientId, petId, entryId) {
