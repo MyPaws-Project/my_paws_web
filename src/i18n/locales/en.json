@@ -1,0 +1,416 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "disable": "Disable",
+    "reactivate": "Reactivate",
+    "active": "Active",
+    "inactive": "Inactive",
+    "unnamed": "(Unnamed)",
+    "back": "Back",
+    "view": "View",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "notes": "Notes"
+  },
+  "layout": {
+    "myClinicFallback": "My clinic",
+    "panel": "Panel",
+    "home": "Home",
+    "clients": "Clients",
+    "calendar": "Calendar",
+    "clinic": "My clinic",
+    "logout": "Log out",
+    "appTitle": "Veterinary clinic management",
+    "language": "Language"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "activeClients": "Active clients:",
+    "errors": {
+      "loadClients": "Couldn't load clients."
+    },
+    "recentClients": {
+      "title": "Recent clients",
+      "empty": "No recent clients yet.",
+      "noContact": "No contact information",
+      "actions": {
+        "viewAll": "View all"
+      }
+    },
+    "today": {
+      "title": "Today's appointments",
+      "actions": {
+        "viewCalendar": "View calendar"
+      }
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "subtitleActive": "List of active clients.",
+    "subtitleInactive": "List of inactive clients.",
+    "searchPlaceholder": "Search",
+    "actions": {
+      "viewActive": "View active",
+      "viewInactive": "View inactive",
+      "new": "New client",
+      "viewDetails": "View client details",
+      "alreadyDisabled": "Client already disabled"
+    },
+    "form": {
+      "newTitle": "New client",
+      "editing": "Editing:",
+      "fields": {
+        "fullName": "Full name",
+        "phone": "Phone",
+        "email": "Email"
+      },
+      "placeholders": {
+        "fullName": "e.g. John Smith",
+        "phone": "e.g. 099 123 456",
+        "email": "e.g. name@email.com"
+      },
+      "actions": {
+        "saving": "Saving…",
+        "save": "Save client"
+      }
+    },
+    "list": {
+      "activeTitle": "Active clients",
+      "inactiveTitle": "Inactive clients"
+    },
+    "empty": {
+      "search": "No results for this search.",
+      "active": "No active clients.",
+      "inactive": "No inactive clients."
+    },
+    "meta": {
+      "noPhone": "No phone"
+    },
+    "confirm": {
+      "disable": "Are you sure you want to disable this client?",
+      "reactivate": "Are you sure you want to reactivate this client?"
+    },
+    "errors": {
+      "load": "Error loading clients",
+      "create": "Error creating client",
+      "update": "Error updating client",
+      "disable": "Error disabling client",
+      "reactivate": "Error reactivating client"
+    },
+    "details": {
+      "back": "Back",
+      "notFound": "Client not found",
+      "loadError": "Couldn't load the client",
+      "sections": {
+        "pets": "Pets"
+      },
+      "actions": {
+        "newPet": "+ New pet"
+      },
+      "pets": {
+        "loading": "Loading pets…",
+        "empty": "This client doesn't have any pets yet.",
+        "loadError": "Couldn't load pets"
+      }
+    }
+  },
+  "appointments": {
+    "list": {
+      "loading": "Loading today's appointments...",
+      "titleToday": "Today's appointments",
+      "emptyToday": "No appointments scheduled for today.",
+      "na": "-",
+      "clientLoading": "Loading...",
+      "clientUnnamed": "(Unnamed client)",
+      "clientLoadFailed": "(Could not load client)",
+      "labels": {
+        "time": "Time",
+        "client": "Client",
+        "reason": "Reason",
+        "status": "Status",
+        "notes": "Notes"
+      }
+    },
+    "calendar": {
+      "loading": "Loading calendar...",
+      "needLogin": "You need to sign in.",
+      "title": "Appointments calendar",
+      "defaultReason": "Consultation",
+      "clientFallback": "Client",
+      "clientUnnamed": "(Client)",
+      "help": "Click an available time slot to create an appointment.",
+      "dayBadge": "{{count}} appointment(s)",
+      "actions": {
+        "back": "Back",
+        "retry": "Retry"
+      },
+      "subtitle": {
+        "appts": "appointment(s)",
+  			"text": "{{count}} {{apptWord}} · Hours 08:00–20:00 · Click an appointment to view details"
+      },
+      "errors": {
+        "load": "Couldn't load the calendar.",
+        "indexBuilding": "The calendar index is being created in Firebase. Please wait a moment and click Retry.",
+        "missingIndex": "A Firestore index is missing for the calendar."
+      },
+      "modal": {
+        "reason": "Reason",
+        "status": "Status",
+        "notes": "Notes",
+        "viewClient": "View client",
+        "editAppointment": "Edit appointment"
+      }
+    },
+    "form": {
+      "na": "-",
+      "titleNew": "New appointment",
+      "emptyClients": "(No active clients)",
+      "defaults": {
+        "reason": "Consultation"
+      },
+      "labels": {
+        "client": "Client",
+        "reason": "Reason",
+        "notes": "Notes"
+      },
+      "placeholders": {
+        "reason": "e.g. Vaccination, check-up...",
+        "notes": "Add extra notes (optional)"
+      },
+      "actions": {
+        "back": "Back",
+        "create": "Create appointment",
+        "creating": "Creating…"
+      },
+      "errors": {
+        "loadClients": "Couldn't load clients.",
+        "needLogin": "You need to sign in.",
+        "missingRange": "Missing start or end in the URL.",
+        "pickClient": "Please select a client.",
+        "invalidDate": "Invalid date.",
+        "create": "Couldn't create the appointment."
+      }
+    },
+    "actions": {
+      "delete": "Delete"
+    },
+    "confirm": {
+      "delete": "Delete this appointment?"
+    },
+    "errors": {
+      "loadToday": "Couldn't load today's appointments.",
+      "delete": "Couldn't delete the appointment."
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "canceled": "Canceled",
+      "no_show": "No-show",
+      "done": "Completed"
+    }
+  },
+  "auth": {
+    "logoAlt": "MyPaws logo",
+    "brand": {
+      "title": "MyPaws",
+      "subtitle": "Simple, modern management for veterinary clinics. Clients, pets, and much more."
+    },
+    "login": {
+      "title": "Login",
+      "subtitle": "Sign in with your clinic account.",
+      "actions": {
+        "signIn": "Sign in",
+        "signingIn": "Signing in…",
+        "goToRegister": "I don't have an account → Register"
+      }
+    },
+    "register": {
+      "title": "Register",
+      "subtitle": "Create your clinic account to get started.",
+      "fields": {
+        "clinicName": "Clinic name",
+        "clinicAddress": "Clinic address",
+        "confirmPassword": "Confirm password"
+      },
+      "placeholders": {
+        "clinicName": "e.g. MyPaws Downtown",
+        "clinicAddress": "e.g. Av. Italia 1234",
+        "confirmPassword": "••••••••"
+      },
+      "actions": {
+        "createAccount": "Create account",
+        "creating": "Creating…",
+        "goToLogin": "I already have an account → Login"
+      }
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Password"
+    },
+    "placeholders": {
+      "email": "you@example.com",
+      "password": "••••••••"
+    },
+    "errors": {
+      "emailAlreadyInUse": "This email is already registered.",
+      "invalidEmail": "Invalid email.",
+      "weakPassword": "Password must be at least 6 characters.",
+      "invalidCredential": "Incorrect email or password.",
+      "userNotFound": "No account exists with that email.",
+      "wrongPassword": "Incorrect password.",
+      "passwordMismatch": "Passwords do not match.",
+      "clinicNameRequired": "Clinic name is required.",
+      "clinicAddressRequired": "Clinic address is required.",
+      "generic": "Something went wrong."
+    }
+  },
+  "pets": {
+    "form": {
+      "titleNew": "New pet",
+      "titleEdit": "Edit pet",
+      "values": {
+        "na": "—"
+      },
+      "fields": {
+        "name": "Name",
+        "species": "Species",
+        "breed": "Breed",
+        "sex": "Sex",
+        "birthDate": "Birth date",
+        "weightKg": "Current weight (kg)",
+        "allergies": "Allergies (comma separated)",
+        "chronicIllnesses": "Chronic illnesses (comma separated)",
+        "currentMedication": "Current medication (comma separated)"
+      },
+      "placeholders": {
+        "species": "e.g. dog / cat",
+        "weightKg": "e.g. 3.9",
+        "allergies": "e.g. chicken, dust",
+        "chronicIllnesses": "e.g. dermatitis, asthma",
+        "currentMedication": "e.g. prednisone, omeprazole"
+      },
+      "actions": {
+        "saving": "Saving…",
+        "saveChanges": "Save changes",
+        "create": "Create pet"
+      },
+      "errors": {
+        "notFound": "Pet not found",
+        "load": "Couldn't load the pet",
+        "nameRequired": "Name is required",
+        "create": "Couldn't create the pet",
+        "update": "Couldn't save changes"
+      }
+    },
+    "details": {
+      "status": {
+        "loading": "Loading…"
+      },
+      "errors": {
+        "notFound": "Pet not found",
+        "load": "Couldn't load the pet",
+        "disable": "Couldn't disable the pet",
+        "reactivate": "Couldn't reactivate the pet"
+      },
+      "confirm": {
+        "disable": "Disable this pet? You can reactivate it later.",
+        "reactivate": "Reactivate this pet?"
+      },
+      "actions": {
+        "backToClient": "Back to client",
+        "medicalHistory": "Medical history",
+        "edit": "Edit",
+        "disable": "Disable",
+        "reactivate": "Reactivate"
+      },
+      "tooltips": {
+        "historyNeedsActive": "Reactivate the pet to manage its history"
+      },
+      "badges": {
+        "inactive": "Inactive"
+      },
+      "labels": {
+        "species": "Species",
+        "breed": "Breed",
+        "sex": "Sex",
+        "birthDate": "Birth date",
+        "currentWeight": "Current weight",
+        "allergies": "Allergies",
+        "chronicIllnesses": "Chronic illnesses",
+        "currentMedication": "Current medication",
+        "notes": "Notes"
+      },
+      "values": {
+        "na": "—",
+        "weightUnit": "kg",
+        "sex": {
+          "male": "Male",
+          "female": "Female"
+        }
+      }
+    }
+  },
+  "medicalHistory": {
+    "list": {
+      "title": "Medical history",
+      "status": {
+        "loading": "Loading history…"
+      },
+      "actions": {
+        "add": "+ Add visit",
+        "delete": "Delete",
+        "back": "Back"
+      },
+      "empty": "There are no visits recorded yet.",
+      "labels": {
+        "diagnosis": "Diagnosis",
+        "treatment": "Treatment",
+        "notes": "Notes"
+      },
+      "values": {
+        "noDate": "No date",
+        "noReason": "No reason",
+        "photoCount": "{{count}}"
+      },
+      "confirm": {
+        "delete": "Delete this visit? This action cannot be undone."
+      },
+      "errors": {
+        "load": "Couldn't load the medical history.",
+        "delete": "Couldn't delete the visit."
+      }
+    },
+    "form": {
+      "titleNew": "New visit",
+      "titleEdit": "Edit visit",
+      "actions": {
+        "backToHistory": "Back to history",
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel"
+      },
+      "fields": {
+        "date": "Date",
+        "reasonRequired": "Reason (required)",
+        "diagnosis": "Diagnosis",
+        "treatment": "Treatment / Instructions",
+        "notes": "Notes",
+        "photosOptional": "Photos (optional)",
+        "existingPhotos": "Existing photos"
+      },
+      "errors": {
+        "notFound": "Visit not found.",
+        "load": "Couldn't load the visit.",
+        "needAuth": "User not authenticated",
+        "dateRequired": "Date is required",
+        "reasonRequired": "Reason is required",
+        "save": "Couldn't save"
+      }
+    }
+  }
+}

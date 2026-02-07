@@ -1,12 +1,12 @@
 :root {
-  --green-dark: #5C9E3F;
-  --green: #7ED957;
-  --bg: #F2F2F2;
+  --green-dark: #5c9e3f;
+  --green: #7ed957;
+  --bg: #f2f2f2;
   --text: #1f2a1f;
   --muted: rgba(0, 0, 0, 0.6);
   --card: #ffffff;
   --border: rgba(0, 0, 0, 0.12);
-  --shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
 }
 
 .auth-page {
@@ -126,6 +126,7 @@
   border: 1px solid rgba(220, 20, 60, 0.25);
   color: #b1122a;
   font-size: 0.95rem;
+  font-weight: 800;
 }
 
 .auth-primary {
@@ -194,76 +195,4 @@
     width: 76px;
     height: 76px;
   }
-
-  .ac-calendar .fc .fc-button,
-.ac-calendar .fc .fc-button-primary {
-  background: #fff !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-  font-weight: 900 !important;
-  border-radius: 12px !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
-}
-
-.ac-calendar .fc .fc-button:hover,
-.ac-calendar .fc .fc-button-primary:hover {
-  background: rgba(126, 217, 87, 0.15) !important;
-  border-color: rgba(126, 217, 87, 0.75) !important;
-  color: var(--text) !important;
-}
-
-.ac-calendar .fc .fc-button:focus,
-.ac-calendar .fc .fc-button:focus-visible,
-.ac-calendar .fc .fc-button-primary:focus,
-.ac-calendar .fc .fc-button-primary:focus-visible {
-  outline: none !important;
-  border-color: rgba(126, 217, 87, 0.75) !important;
-  box-shadow: 0 0 0 3px rgba(126, 217, 87, 0.25) !important;
-}
-
-.ac-calendar .fc .fc-button.fc-button-active,
-.ac-calendar .fc .fc-button-primary.fc-button-active,
-.ac-calendar .fc .fc-button-primary:not(:disabled):active {
-  background: rgba(126, 217, 87, 0.22) !important;
-  border-color: rgba(92, 158, 63, 0.55) !important;
-  color: var(--text) !important;
-}
-
-.ac-calendar .fc .fc-button:disabled,
-.ac-calendar .fc .fc-button-primary:disabled {
-  opacity: 0.55 !important;
-  cursor: not-allowed !important;
-}
-
-.ac-calendar .fc .fc-today-button,
-.ac-calendar .fc .fc-today-button.fc-button-primary {
-  background: var(--green-dark) !important;
-  border-color: transparent !important;
-  color: #fff !important;
-}
-
-.ac-calendar .fc .fc-today-button:hover,
-.ac-calendar .fc .fc-today-button.fc-button-primary:hover {
-  opacity: 0.95 !important;
-  color: #fff !important;
-}
-
-.ac-calendar .fc .fc-button-group .fc-button,
-.ac-calendar .fc .fc-button-group .fc-button-primary {
-  border-radius: 0 !important;
-}
-
-.ac-calendar .fc .fc-button-group .fc-button:first-child,
-.ac-calendar .fc .fc-button-group .fc-button-primary:first-child {
-  border-top-left-radius: 12px !important;
-  border-bottom-left-radius: 12px !important;
-}
-
-.ac-calendar .fc .fc-button-group .fc-button:last-child,
-.ac-calendar .fc .fc-button-group .fc-button-primary:last-child {
-  border-top-right-radius: 12px !important;
-  border-bottom-right-radius: 12px !important;
-}
-
 }

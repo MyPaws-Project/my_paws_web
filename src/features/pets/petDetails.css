@@ -1,5 +1,5 @@
 :root {
-  --green-dark: #5C9E3F;
+  --green-dark: #5c9e3f;
   --text: #1f2a1f;
   --muted: rgba(0, 0, 0, 0.6);
   --card: #ffffff;
@@ -42,9 +42,16 @@
   margin: 0;
   font-size: 1.65rem;
   font-weight: 900;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.pd-badge {
+  margin: 6px 0 0 0;
+  display: inline-block;
+  font-weight: 900;
+  color: crimson;
 }
 
 .pd-actions {

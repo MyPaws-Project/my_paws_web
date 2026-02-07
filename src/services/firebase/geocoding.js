@@ -2,6 +2,12 @@ const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 export async function geocodeAddress(address) {
   try {
+
+    if (!GOOGLE_MAPS_KEY) {
+      console.error('Missing GOOGLE MAPS API KEY');
+      return null;
+    }
+
     if (!address?.trim()) return null;
 
     console.log("KEY:", GOOGLE_MAPS_KEY);

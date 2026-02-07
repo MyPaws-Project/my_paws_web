@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   getClients,
   createClient,
@@ -19,6 +20,7 @@ const normalize = (s) =>
 
 export default function Clients() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,7 @@ export default function Clients() {
       const data = await getClients();
       setClients(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError(err?.message || 'Error cargando clientes');
+      setError(err?.message || t('clients.errors.load'));
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export default function Clients() {
       await loadClients();
     } catch (err) {
       console.error('ERROR creando cliente:', err);
-      setError(err?.message || 'Error creando cliente');
+      setError(err?.message || t('clients.errors.create'));
     } finally {
       setSaving(false);
     }
@@ -72,14 +74,14 @@ export default function Clients() {
       await loadClients();
     } catch (err) {
       console.error('ERROR editando cliente:', err);
-      setError(err?.message || 'Error editando cliente');
+      setError(err?.message || t('clients.errors.update'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDisable = async (clientId) => {
-    const ok = window.confirm('¿Seguro que querés desactivar este cliente?');
+    const ok = window.confirm(t('clients.confirm.disable'));
     if (!ok) return;
 
     setSaving(true);
@@ -89,14 +91,14 @@ export default function Clients() {
       await loadClients();
     } catch (err) {
       console.error('ERROR desactivando cliente:', err);
-      setError(err?.message || 'Error desactivando cliente');
+      setError(err?.message || t('clients.errors.disable'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleReactivate = async (clientId) => {
-    const ok = window.confirm('¿Seguro que querés reactivar este cliente?');
+    const ok = window.confirm(t('clients.confirm.reactivate'));
     if (!ok) return;
 
     setSaving(true);
@@ -106,7 +108,7 @@ export default function Clients() {
       await loadClients();
     } catch (err) {
       console.error('ERROR reactivando cliente:', err);
-      setError(err?.message || 'Error reactivando cliente');
+      setError(err?.message || t('clients.errors.reactivate'));
     } finally {
       setSaving(false);
     }
@@ -150,9 +152,9 @@ export default function Clients() {
     <div className="clients-page">
       <header className="clients-header">
         <div className="clients-titlewrap">
-          <h1 className="clients-title">Clientes</h1>
+          <h1 className="clients-title">{t('clients.title')}</h1>
           <p className="clients-subtitle">
-            {showInactive ? 'Listado de clientes inactivos.' : 'Listado de clientes activos.'}
+            {showInactive ? t('clients.subtitleInactive') : t('clients.subtitleActive')}
           </p>
         </div>
 
@@ -161,16 +163,16 @@ export default function Clients() {
             className="clients-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar"
+            placeholder={t('clients.searchPlaceholder')}
             disabled={saving || loading}
           />
 
           <button className="btn-secondary" onClick={toggleInactive} disabled={saving}>
-            {showInactive ? 'Ver activos' : 'Ver inactivos'}
+            {showInactive ? t('clients.actions.viewActive') : t('clients.actions.viewInactive')}
           </button>
 
           <button className="btn-primary" onClick={openCreate} disabled={saving}>
-            Nuevo cliente
+            {t('clients.actions.new')}
           </button>
         </div>
       </header>
@@ -178,9 +180,9 @@ export default function Clients() {
       {showForm && !editingClient && (
         <section className="card clients-card">
           <div className="card-header">
-            <h3 className="card-title">Nuevo cliente</h3>
+            <h3 className="card-title">{t('clients.form.newTitle')}</h3>
             <button className="btn-secondary" onClick={cancelForm} disabled={saving}>
-              Cancelar
+              {t('common.cancel')}
             </button>
           </div>
 
@@ -191,9 +193,11 @@ export default function Clients() {
       {editingClient && (
         <section className="card clients-card">
           <div className="card-header">
-            <h3 className="card-title">Editando: {editingClient.fullName || '(Sin nombre)'}</h3>
+            <h3 className="card-title">
+              {t('clients.form.editing')} {editingClient.fullName || t('common.unnamed')}
+            </h3>
             <button className="btn-secondary" onClick={cancelForm} disabled={saving}>
-              Cancelar
+              {t('common.cancel')}
             </button>
           </div>
 
@@ -201,23 +205,25 @@ export default function Clients() {
         </section>
       )}
 
-      {loading && <p className="clients-status">Cargando…</p>}
+      {loading && <p className="clients-status">{t('common.loading')}</p>}
       {error && <p className="clients-error">{error}</p>}
 
       {!loading && !error && (
         <section className="card clients-card">
           <div className="card-header">
-            <h3 className="card-title">{showInactive ? 'Clientes inactivos' : 'Clientes activos'}</h3>
+            <h3 className="card-title">
+              {showInactive ? t('clients.list.inactiveTitle') : t('clients.list.activeTitle')}
+            </h3>
             <span className="clients-count">{visibleClients.length}</span>
           </div>
 
           {visibleClients.length === 0 ? (
             <p className="clients-empty">
               {search
-                ? 'No hay resultados para esa búsqueda.'
+                ? t('clients.empty.search')
                 : showInactive
-                ? 'No hay clientes inactivos.'
-                : 'No hay clientes activos.'}
+                ? t('clients.empty.inactive')
+                : t('clients.empty.active')}
             </p>
           ) : (
             <div className="clients-list">
@@ -227,24 +233,24 @@ export default function Clients() {
                     type="button"
                     className="client-main"
                     onClick={() => navigate(`/clients/${c.id}`)}
-                    title="Ver información del cliente"
+                    title={t('clients.actions.viewDetails')}
                   >
                     <div className="client-name">
-                      {c.fullName || '(Sin nombre)'}
+                      {c.fullName || t('common.unnamed')}
                       <span className={`pill ${c.active === false ? 'pill-off' : 'pill-on'}`}>
-                        {c.active === false ? 'Inactivo' : 'Activo'}
+                        {c.active === false ? t('common.inactive') : t('common.active')}
                       </span>
                     </div>
 
                     <div className="client-meta">
-                      {c.phone || 'Sin teléfono'}
+                      {c.phone || t('clients.meta.noPhone')}
                       {c.email ? ` • ${c.email}` : ''}
                     </div>
                   </button>
 
                   <div className="client-actions">
                     <button className="btn-secondary" onClick={() => startEdit(c)} disabled={saving}>
-                      Editar
+                      {t('common.edit')}
                     </button>
 
                     {showInactive ? (
@@ -253,16 +259,16 @@ export default function Clients() {
                         onClick={() => handleReactivate(c.id)}
                         disabled={saving}
                       >
-                        Reactivar
+                        {t('common.reactivate')}
                       </button>
                     ) : (
                       <button
                         className="btn-danger"
                         onClick={() => handleDisable(c.id)}
                         disabled={saving || c.active === false}
-                        title={c.active === false ? 'Cliente desactivado' : 'Desactivar cliente'}
+                        title={c.active === false ? t('clients.actions.alreadyDisabled') : t('common.disable')}
                       >
-                        Desactivar
+                        {t('common.disable')}
                       </button>
                     )}
                   </div>

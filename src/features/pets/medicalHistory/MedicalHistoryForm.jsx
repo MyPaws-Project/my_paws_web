@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 import {
   createHistoryEntry,
   getHistoryEntry,
-  updateHistoryEntry,
-} from '../../../services/pets/medicalHistory.service';
+  updateHistoryEntry
+} from "../../../services/pets/medicalHistory.service";
 
-import { db, storage, auth } from '../../../services/firebase/firebase';
+import { db, storage, auth } from "../../../services/firebase/firebase";
+import { doc, updateDoc, arrayUnion, serverTimestamp } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
-import { doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
-import './medicalHistoryForm.css';
+import "./medicalHistoryForm.css";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -19,23 +20,22 @@ export default function MedicalHistoryForm() {
   const { id: clientId, petId, entryId } = useParams();
   const isEdit = Boolean(entryId);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [date, setDate] = useState(todayISO());
-  const [reason, setReason] = useState('');
-  const [diagnosis, setDiagnosis] = useState('');
-  const [treatment, setTreatment] = useState('');
-  const [notes, setNotes] = useState('');
+  const [reason, setReason] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [treatment, setTreatment] = useState("");
+  const [notes, setNotes] = useState("");
 
   const [existingPhotos, setExistingPhotos] = useState([]);
   const [files, setFiles] = useState([]);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const previews = useMemo(() => {
-    const urls = files.map((f) => URL.createObjectURL(f));
-    return urls;
-  }, [files]);
+  const [errorKey, setErrorKey] = useState("");
+
+  const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
 
   useEffect(() => {
     return () => {
@@ -49,33 +49,34 @@ export default function MedicalHistoryForm() {
     let alive = true;
 
     const load = async () => {
-      setError('');
+      setErrorKey("");
       setLoading(true);
+
       try {
         const data = await getHistoryEntry(clientId, petId, entryId);
         if (!alive) return;
 
         if (!data) {
-          setError('No se encontró la entrada.');
+          setErrorKey("medicalHistory.form.errors.notFound");
           return;
         }
 
         setDate(data.date || todayISO());
-        setReason(data.reason || '');
-        setDiagnosis(data.diagnosis || '');
-        setTreatment(data.treatment || '');
-        setNotes(data.notes || '');
-
+        setReason(data.reason || "");
+        setDiagnosis(data.diagnosis || "");
+        setTreatment(data.treatment || "");
+        setNotes(data.notes || "");
         setExistingPhotos(Array.isArray(data.photos) ? data.photos : []);
       } catch (e) {
         if (!alive) return;
-        setError(e?.message || 'Error cargando entrada');
+        setErrorKey("medicalHistory.form.errors.load");
       } finally {
         if (alive) setLoading(false);
       }
     };
 
     load();
+
     return () => {
       alive = false;
     };
@@ -94,12 +95,15 @@ export default function MedicalHistoryForm() {
     if (!selectedFiles?.length) return;
 
     const user = auth?.currentUser;
-    if (!user) throw new Error('Usuario no autenticado');
+    if (!user) {
+      setErrorKey("medicalHistory.form.errors.needLogin");
+      return;
+    }
 
-    const entryRef = doc(db, 'clients', clientId, 'pets', petId, 'medicalHistory', finalEntryId);
+    const entryRef = doc(db, "clients", clientId, "pets", petId, "medicalHistory", finalEntryId);
 
     for (const file of selectedFiles) {
-      const safeName = (file.name || 'photo').replace(/\s+/g, '_');
+      const safeName = (file.name || "photo").replace(/\s+/g, "_");
       const path = `clinics/${user.uid}/clients/${clientId}/pets/${petId}/history/${finalEntryId}/${Date.now()}_${safeName}`;
 
       const storageRef = ref(storage, path);
@@ -111,16 +115,16 @@ export default function MedicalHistoryForm() {
         photos: arrayUnion({
           url,
           path,
-          createdAt: serverTimestamp(),
+          createdAt: serverTimestamp()
         }),
-        updatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setErrorKey("");
     setLoading(true);
 
     try {
@@ -129,11 +133,17 @@ export default function MedicalHistoryForm() {
         reason: reason.trim(),
         diagnosis: diagnosis.trim(),
         treatment: treatment.trim(),
-        notes: notes.trim(),
+        notes: notes.trim()
       };
 
-      if (!payload.date) throw new Error('La fecha es obligatoria');
-      if (!payload.reason) throw new Error('El motivo es obligatorio');
+      if (!payload.date) {
+        setErrorKey("medicalHistory.form.errors.dateRequired");
+        return;
+      }
+      if (!payload.reason) {
+        setErrorKey("medicalHistory.form.errors.reasonRequired");
+        return;
+      }
 
       let finalEntryId = entryId;
 
@@ -147,7 +157,7 @@ export default function MedicalHistoryForm() {
 
       navigate(`/clients/${clientId}/pets/${petId}/history`);
     } catch (e2) {
-      setError(e2?.message || 'No se pudo guardar');
+      setErrorKey(isEdit ? "medicalHistory.form.errors.update" : "medicalHistory.form.errors.create");
     } finally {
       setLoading(false);
     }
@@ -160,18 +170,20 @@ export default function MedicalHistoryForm() {
         onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
         disabled={loading}
       >
-        ← Volver al historial
+        ← {t("medicalHistory.form.actions.backToHistory")}
       </button>
 
-      <h1 className="mhf-title">{isEdit ? 'Editar consulta' : 'Nueva consulta'}</h1>
+      <h1 className="mhf-title">
+        {isEdit ? t("medicalHistory.form.titleEdit") : t("medicalHistory.form.titleNew")}
+      </h1>
 
-      {error ? <p className="mhf-error">{error}</p> : null}
+      {errorKey ? <p className="mhf-error">{t(errorKey)}</p> : null}
 
       <div className="card mhf-form">
         <form onSubmit={handleSubmit}>
           <div className="mhf-grid">
             <label className="mhf-field">
-              <span className="mhf-label">Fecha</span>
+              <span className="mhf-label">{t("medicalHistory.form.fields.date")}</span>
               <input
                 className="mhf-input"
                 type="date"
@@ -183,7 +195,7 @@ export default function MedicalHistoryForm() {
             </label>
 
             <label className="mhf-field">
-              <span className="mhf-label">Motivo (obligatorio)</span>
+              <span className="mhf-label">{t("medicalHistory.form.fields.reasonRequired")}</span>
               <input
                 className="mhf-input"
                 value={reason}
@@ -194,7 +206,7 @@ export default function MedicalHistoryForm() {
             </label>
 
             <label className="mhf-field mhf-span-2">
-              <span className="mhf-label">Diagnóstico</span>
+              <span className="mhf-label">{t("medicalHistory.form.fields.diagnosis")}</span>
               <input
                 className="mhf-input"
                 value={diagnosis}
@@ -204,7 +216,7 @@ export default function MedicalHistoryForm() {
             </label>
 
             <label className="mhf-field mhf-span-2">
-              <span className="mhf-label">Tratamiento / Indicaciones</span>
+              <span className="mhf-label">{t("medicalHistory.form.fields.treatment")}</span>
               <textarea
                 className="mhf-textarea"
                 value={treatment}
@@ -215,7 +227,7 @@ export default function MedicalHistoryForm() {
             </label>
 
             <label className="mhf-field mhf-span-2">
-              <span className="mhf-label">Notas</span>
+              <span className="mhf-label">{t("common.notes")}</span>
               <textarea
                 className="mhf-textarea"
                 value={notes}
@@ -226,7 +238,7 @@ export default function MedicalHistoryForm() {
             </label>
 
             <div className="mhf-field mhf-span-2">
-              <div className="mhf-label">Fotos (opcional)</div>
+              <div className="mhf-label">{t("medicalHistory.form.fields.photosOptional")}</div>
 
               <input
                 className="mhf-input"
@@ -238,26 +250,35 @@ export default function MedicalHistoryForm() {
               />
 
               {previews.length ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 10 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                    gap: 10,
+                    marginTop: 10
+                  }}
+                >
                   {previews.map((src, idx) => (
-                    <div key={src} style={{ position: 'relative' }}>
+                    <div key={src} style={{ position: "relative" }}>
                       <img
                         src={src}
-                        alt={`preview-${idx}`}
-                        style={{ width: '100%', height: 90, objectFit: 'cover', borderRadius: 10 }}
+                        alt={t("medicalHistory.form.alts.preview", { index: idx + 1 })}
+                        style={{ width: "100%", height: 90, objectFit: "cover", borderRadius: 10 }}
                       />
                       <button
                         type="button"
                         onClick={() => removePicked(idx)}
                         disabled={loading}
                         style={{
-                          position: 'absolute',
+                          position: "absolute",
                           top: 6,
                           right: 6,
                           borderRadius: 999,
-                          padding: '4px 8px',
-                          cursor: 'pointer',
+                          padding: "4px 8px",
+                          cursor: "pointer"
                         }}
+                        aria-label={t("medicalHistory.form.actions.removePhoto")}
+                        title={t("medicalHistory.form.actions.removePhoto")}
                       >
                         ✕
                       </button>
@@ -268,14 +289,21 @@ export default function MedicalHistoryForm() {
 
               {existingPhotos?.length ? (
                 <div style={{ marginTop: 12 }}>
-                  <div className="mhf-label">Fotos ya adjuntas</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 10 }}>
+                  <div className="mhf-label">{t("medicalHistory.form.labels.existingPhotos")}</div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                      gap: 10,
+                      marginTop: 10
+                    }}
+                  >
                     {existingPhotos.map((p, i) => (
                       <a key={p.url || i} href={p.url} target="_blank" rel="noreferrer">
                         <img
                           src={p.url}
-                          alt={`photo-${i}`}
-                          style={{ width: '100%', height: 90, objectFit: 'cover', borderRadius: 10 }}
+                          alt={t("medicalHistory.form.alts.existingPhoto", { index: i + 1 })}
+                          style={{ width: "100%", height: 90, objectFit: "cover", borderRadius: 10 }}
                         />
                       </a>
                     ))}
@@ -287,7 +315,7 @@ export default function MedicalHistoryForm() {
 
           <div className="mhf-actions">
             <button className="btn-primary" type="submit" disabled={loading}>
-              {loading ? 'Guardando…' : 'Guardar'}
+              {loading ? t("medicalHistory.form.actions.saving") : t("medicalHistory.form.actions.save")}
             </button>
 
             <button
@@ -296,7 +324,7 @@ export default function MedicalHistoryForm() {
               onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
               disabled={loading}
             >
-              Cancelar
+              {t("common.cancel")}
             </button>
           </div>
         </form>

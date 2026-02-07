@@ -1,25 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { listHistoryEntries, deleteHistoryEntry } from '../../../services/pets/medicalHistory.service';
 import './medicalHistoryList.css';
 
 export default function MedicalHistoryList() {
   const { id: clientId, petId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [errorKey, setErrorKey] = useState('');
 
   const load = async () => {
     try {
-      setError('');
+      setErrorKey('');
       setLoading(true);
       const data = await listHistoryEntries(clientId, petId);
       setItems(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError('No se pudo cargar el historial médico');
+      setErrorKey('medicalHistory.list.errors.load');
     } finally {
       setLoading(false);
     }
@@ -30,7 +32,7 @@ export default function MedicalHistoryList() {
   }, [clientId, petId]);
 
   const handleDelete = async (entryId) => {
-    const ok = window.confirm('¿Eliminar esta consulta? Esta acción no se puede deshacer.');
+    const ok = window.confirm(t('medicalHistory.list.confirm.delete'));
     if (!ok) return;
 
     try {
@@ -38,25 +40,25 @@ export default function MedicalHistoryList() {
       await deleteHistoryEntry(clientId, petId, entryId);
       await load();
     } catch (e) {
-      setError('No se pudo eliminar la consulta');
+      setErrorKey('medicalHistory.list.errors.delete');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="mh-status">Cargando historial…</div>;
+  if (loading) return <div className="mh-status">{t('medicalHistory.list.status.loading')}</div>;
 
-  if (error) {
+  if (errorKey) {
     return (
       <div className="mh-page">
         <div className="mh-status">
-          <p className="mh-error">{error}</p>
+          <p className="mh-error">{t(errorKey)}</p>
           <button
             className="btn-secondary"
             onClick={() => navigate(`/clients/${clientId}/pets/${petId}`)}
             disabled={saving}
           >
-            Volver
+            {t('common.back')}
           </button>
         </div>
       </div>
@@ -67,7 +69,7 @@ export default function MedicalHistoryList() {
     <div className="mh-page">
       <header className="mh-header">
         <div className="mh-headings">
-          <h1 className="mh-title">Historial médico</h1>
+          <h1 className="mh-title">{t('medicalHistory.list.title')}</h1>
         </div>
 
         <div className="mh-actions">
@@ -76,7 +78,7 @@ export default function MedicalHistoryList() {
             onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history/new`)}
             disabled={saving}
           >
-            + Agregar consulta
+            {t('medicalHistory.list.actions.add')}
           </button>
 
           <button
@@ -84,13 +86,13 @@ export default function MedicalHistoryList() {
             onClick={() => navigate(`/clients/${clientId}/pets/${petId}`)}
             disabled={saving}
           >
-            Volver
+            {t('common.back')}
           </button>
         </div>
       </header>
 
       {items.length === 0 ? (
-        <div className="card mh-empty">Todavía no hay consultas registradas.</div>
+        <div className="card mh-empty">{t('medicalHistory.list.empty')}</div>
       ) : (
         <div className="mh-list">
           {items.map((x) => {
@@ -100,10 +102,10 @@ export default function MedicalHistoryList() {
               <div key={x.id} className="card mh-item">
                 <div className="mh-item-top">
                   <div className="mh-main">
-                    <div className="mh-date">{x.date || 'Sin fecha'}</div>
+                    <div className="mh-date">{x.date || t('medicalHistory.list.values.noDate')}</div>
 
                     <div className="mh-reason">
-                      {x.reason || 'Sin motivo'}
+                      {x.reason || t('medicalHistory.list.values.noReason')}
                       {photoCount > 0 ? <span className="mh-badge">📷 {photoCount}</span> : null}
                     </div>
                   </div>
@@ -111,12 +113,18 @@ export default function MedicalHistoryList() {
                   <div className="mh-item-actions">
                     <button
                       className="btn-secondary"
-                      onClick={() =>
-                        navigate(`/clients/${clientId}/pets/${petId}/history/${x.id}/edit`)
-                      }
+                      onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history/${x.id}`)}
                       disabled={saving}
                     >
-                      Editar
+                      {t('common.view')}
+                    </button>
+
+                    <button
+                      className="btn-secondary"
+                      onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history/${x.id}/edit`)}
+                      disabled={saving}
+                    >
+                      {t('common.edit')}
                     </button>
 
                     <button
@@ -124,7 +132,7 @@ export default function MedicalHistoryList() {
                       onClick={() => handleDelete(x.id)}
                       disabled={saving}
                     >
-                      Eliminar
+                      {t('medicalHistory.list.actions.delete')}
                     </button>
                   </div>
                 </div>
@@ -132,19 +140,19 @@ export default function MedicalHistoryList() {
                 <div className="mh-details">
                   {x.diagnosis ? (
                     <p className="mh-line">
-                      <b>Diagnóstico:</b> {x.diagnosis}
+                      <b>{t('medicalHistory.list.labels.diagnosis')}:</b> {x.diagnosis}
                     </p>
                   ) : null}
 
                   {x.treatment ? (
                     <p className="mh-line">
-                      <b>Tratamiento:</b> {x.treatment}
+                      <b>{t('medicalHistory.list.labels.treatment')}:</b> {x.treatment}
                     </p>
                   ) : null}
 
                   {x.notes ? (
                     <p className="mh-line mh-notes">
-                      <b>Notas:</b> {x.notes}
+                      <b>{t('medicalHistory.list.labels.notes')}:</b> {x.notes}
                     </p>
                   ) : null}
                 </div>

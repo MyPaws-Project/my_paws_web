@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Timestamp } from "firebase/firestore";
+import { useTranslation } from "react-i18next";
+
 import { auth } from "../../services/firebase/firebase";
 import { createAppointment } from "../../services/appointments/appointments.service";
 import { getClients } from "../../services/clients/clients.service";
+
 import "./appointmentForm.css";
 
 function safeDate(value) {
@@ -12,25 +15,12 @@ function safeDate(value) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-function formatHour(d) {
-  if (!d) return "-";
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-function formatDay(d) {
-  if (!d) return "-";
-  return d.toLocaleDateString([], {
-    weekday: "long",
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-  });
-}
-
 export default function AppointmentForm() {
   const navigate = useNavigate();
   const { search } = useLocation();
   const params = new URLSearchParams(search);
+
+  const { t, i18n } = useTranslation();
 
   const start = params.get("start");
   const end = params.get("end");
@@ -41,11 +31,34 @@ export default function AppointmentForm() {
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState("");
 
-  const [reason, setReason] = useState("Consulta");
+  const [reason, setReason] = useState(t("appointments.form.defaults.reason"));
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [loadingClients, setLoadingClients] = useState(true);
   const [error, setError] = useState("");
+
+  const formatHour = (d) => {
+    if (!d) return t("appointments.form.na");
+    try {
+      return d.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return t("appointments.form.na");
+    }
+  };
+
+  const formatDay = (d) => {
+    if (!d) return t("appointments.form.na");
+    try {
+      return d.toLocaleDateString(i18n.language, {
+        weekday: "long",
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+    } catch {
+      return t("appointments.form.na");
+    }
+  };
 
   useEffect(() => {
     const loadClients = async () => {
@@ -60,36 +73,42 @@ export default function AppointmentForm() {
         if (active.length) setClientId(active[0].id);
       } catch (e) {
         console.error(e);
-        setError("No se pudieron cargar los clientes.");
+        setError(t("appointments.form.errors.loadClients"));
       } finally {
         setLoadingClients(false);
       }
     };
 
     loadClients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    // si cambiás idioma, actualizamos el valor por defecto SOLO si el usuario no tocó el campo
+    setReason((prev) => (prev?.trim() ? prev : t("appointments.form.defaults.reason")));
+  }, [t]);
 
   const handleCreate = async () => {
     setError("");
 
     const user = auth.currentUser;
     if (!user) {
-      setError("Tenés que iniciar sesión.");
+      setError(t("appointments.form.errors.needLogin"));
       return;
     }
 
     if (!start || !end) {
-      setError("Falta start o end en la URL.");
+      setError(t("appointments.form.errors.missingRange"));
       return;
     }
 
     if (!clientId) {
-      setError("Seleccioná un cliente.");
+      setError(t("appointments.form.errors.pickClient"));
       return;
     }
 
     if (!startDate || !endDate) {
-      setError("Fecha inválida.");
+      setError(t("appointments.form.errors.invalidDate"));
       return;
     }
 
@@ -110,7 +129,7 @@ export default function AppointmentForm() {
       navigate("/calendar");
     } catch (e) {
       console.error(e);
-      setError("No se pudo crear el turno.");
+      setError(t("appointments.form.errors.create"));
     } finally {
       setSaving(false);
     }
@@ -122,20 +141,22 @@ export default function AppointmentForm() {
   return (
     <div className="af-page">
       <button className="af-back" onClick={() => navigate(-1)} disabled={saving}>
-        ← Volver
+        ← {t("appointments.form.actions.back")}
       </button>
 
-      <h1 className="af-title">Nuevo turno</h1>
+      <h1 className="af-title">{t("appointments.form.titleNew")}</h1>
 
       <div className="af-meta card">
-        <div className="af-meta-day">{dayLabel}</div>
+        <div className="af-meta-day" style={{ textTransform: "capitalize" }}>
+          {dayLabel}
+        </div>
         <div className="af-meta-time">{timeLabel}</div>
       </div>
 
       <div className="card af-form">
         <div className="af-grid">
           <div className="af-field af-span-2">
-            <label className="af-label">Cliente</label>
+            <label className="af-label">{t("appointments.form.labels.client")}</label>
             <select
               className="af-input"
               value={clientId}
@@ -143,11 +164,11 @@ export default function AppointmentForm() {
               disabled={loadingClients || saving}
             >
               {clients.length === 0 ? (
-                <option value="">(No hay clientes activos)</option>
+                <option value="">{t("appointments.form.emptyClients")}</option>
               ) : (
                 clients.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.fullName || "(Sin nombre)"}
+                    {c.fullName || t("common.unnamed")}
                   </option>
                 ))
               )}
@@ -155,23 +176,25 @@ export default function AppointmentForm() {
           </div>
 
           <div className="af-field af-span-2">
-            <label className="af-label">Motivo</label>
+            <label className="af-label">{t("appointments.form.labels.reason")}</label>
             <input
               className="af-input"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               disabled={saving}
+              placeholder={t("appointments.form.placeholders.reason")}
             />
           </div>
 
           <div className="af-field af-span-2">
-            <label className="af-label">Notas</label>
+            <label className="af-label">{t("appointments.form.labels.notes")}</label>
             <textarea
               className="af-textarea"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               disabled={saving}
+              placeholder={t("appointments.form.placeholders.notes")}
             />
           </div>
         </div>
@@ -180,15 +203,11 @@ export default function AppointmentForm() {
 
         <div className="af-actions">
           <button className="btn-secondary" onClick={() => navigate(-1)} disabled={saving}>
-            Cancelar
+            {t("common.cancel")}
           </button>
 
-          <button
-            className="btn-primary"
-            onClick={handleCreate}
-            disabled={saving || loadingClients}
-          >
-            {saving ? "Creando…" : "Crear turno"}
+          <button className="btn-primary" onClick={handleCreate} disabled={saving || loadingClients}>
+            {saving ? t("appointments.form.actions.creating") : t("appointments.form.actions.create")}
           </button>
         </div>
       </div>

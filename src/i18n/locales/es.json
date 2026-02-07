@@ -1,0 +1,416 @@
+{
+  "common": {
+    "loading": "Cargando…",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "disable": "Desactivar",
+    "reactivate": "Reactivar",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "unnamed": "(Sin nombre)",
+    "back": "Volver",
+    "view": "Ver",
+    "email": "Email",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "notes": "Notas"
+  },
+  "layout": {
+    "myClinicFallback": "Mi clínica",
+    "panel": "Panel",
+    "home": "Inicio",
+    "clients": "Clientes",
+    "calendar": "Calendario",
+    "clinic": "Mi clínica",
+    "logout": "Cerrar sesión",
+    "appTitle": "Gestión de clínica veterinaria",
+    "language": "Idioma"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "activeClients": "Clientes activos:",
+    "errors": {
+      "loadClients": "No se pudieron cargar los clientes."
+    },
+    "recentClients": {
+      "title": "Clientes recientes",
+      "empty": "Todavía no hay clientes recientes.",
+      "noContact": "Sin información de contacto",
+      "actions": {
+        "viewAll": "Ver todos"
+      }
+    },
+    "today": {
+      "title": "Turnos de hoy",
+      "actions": {
+        "viewCalendar": "Ver calendario"
+      }
+    }
+  },
+  "clients": {
+    "title": "Clientes",
+    "subtitleActive": "Listado de clientes activos.",
+    "subtitleInactive": "Listado de clientes inactivos.",
+    "searchPlaceholder": "Buscar",
+    "actions": {
+      "viewActive": "Ver activos",
+      "viewInactive": "Ver inactivos",
+      "new": "Nuevo cliente",
+      "viewDetails": "Ver información del cliente",
+      "alreadyDisabled": "Cliente desactivado"
+    },
+    "form": {
+      "newTitle": "Nuevo cliente",
+      "editing": "Editando:",
+      "fields": {
+        "fullName": "Nombre completo",
+        "phone": "Teléfono",
+        "email": "Email"
+      },
+      "placeholders": {
+        "fullName": "Ej: Juan Pérez",
+        "phone": "Ej: 099 123 456",
+        "email": "Ej: nombre@email.com"
+      },
+      "actions": {
+        "saving": "Guardando…",
+        "save": "Guardar cliente"
+      }
+    },
+    "list": {
+      "activeTitle": "Clientes activos",
+      "inactiveTitle": "Clientes inactivos"
+    },
+    "empty": {
+      "search": "No hay resultados para esa búsqueda.",
+      "active": "No hay clientes activos.",
+      "inactive": "No hay clientes inactivos."
+    },
+    "meta": {
+      "noPhone": "Sin teléfono"
+    },
+    "confirm": {
+      "disable": "¿Seguro que querés desactivar este cliente?",
+      "reactivate": "¿Seguro que querés reactivar este cliente?"
+    },
+    "errors": {
+      "load": "Error cargando clientes",
+      "create": "Error creando cliente",
+      "update": "Error editando cliente",
+      "disable": "Error desactivando cliente",
+      "reactivate": "Error reactivando cliente"
+    },
+    "details": {
+      "back": "Volver",
+      "notFound": "Cliente no encontrado",
+      "loadError": "No se pudo cargar el cliente",
+      "sections": {
+        "pets": "Mascotas"
+      },
+      "actions": {
+        "newPet": "+ Nueva mascota"
+      },
+      "pets": {
+        "loading": "Cargando mascotas…",
+        "empty": "Este cliente todavía no tiene mascotas registradas.",
+        "loadError": "No se pudieron cargar las mascotas"
+      }
+    }
+  },
+  "appointments": {
+    "list": {
+      "loading": "Cargando consultas de hoy...",
+      "titleToday": "Consultas de hoy",
+      "emptyToday": "No hay turnos agendados para hoy.",
+      "na": "-",
+      "clientLoading": "Cargando...",
+      "clientUnnamed": "(Cliente sin nombre)",
+      "clientLoadFailed": "(No se pudo cargar cliente)",
+      "labels": {
+        "time": "Hora",
+        "client": "Cliente",
+        "reason": "Motivo",
+        "status": "Estado",
+        "notes": "Notas"
+      }
+    },
+    "calendar": {
+      "loading": "Cargando calendario...",
+      "needLogin": "Tenés que iniciar sesión.",
+      "title": "Calendario de turnos",
+      "defaultReason": "Consulta",
+      "clientFallback": "Cliente",
+      "clientUnnamed": "(Cliente)",
+      "help": "Haz click sobre una hora libre para crear un turno.",
+      "dayBadge": "{{count}} turno(s)",
+      "actions": {
+        "back": "Volver",
+        "retry": "Reintentar"
+      },
+      "subtitle": {
+        "appts": "turno(s)",
+  			"text": "{{count}} {{apptWord}} · Hours 08:00–20:00 · Click an appointment to view details"
+      },
+      "errors": {
+        "load": "No se pudo cargar el calendario.",
+        "indexBuilding": "El índice del calendario se está creando en Firebase. Esperá un momento y tocá Reintentar.",
+        "missingIndex": "Falta crear un índice en Firestore para el calendario."
+      },
+      "modal": {
+        "reason": "Motivo",
+        "status": "Estado",
+        "notes": "Notas",
+        "viewClient": "Ver cliente",
+        "editAppointment": "Editar turno"
+      }
+    },
+    "form": {
+      "na": "-",
+      "titleNew": "Nuevo turno",
+      "emptyClients": "(No hay clientes activos)",
+      "defaults": {
+        "reason": "Consulta"
+      },
+      "labels": {
+        "client": "Cliente",
+        "reason": "Motivo",
+        "notes": "Notas"
+      },
+      "placeholders": {
+        "reason": "Ej: Vacunación, control...",
+        "notes": "Agregá notas extra (opcional)"
+      },
+      "actions": {
+        "back": "Volver",
+        "create": "Crear turno",
+        "creating": "Creando…"
+      },
+      "errors": {
+        "loadClients": "No se pudieron cargar los clientes.",
+        "needLogin": "Tenés que iniciar sesión.",
+        "missingRange": "Falta start o end en la URL.",
+        "pickClient": "Seleccioná un cliente.",
+        "invalidDate": "Fecha inválida.",
+        "create": "No se pudo crear el turno."
+      }
+    },
+    "actions": {
+      "delete": "Eliminar"
+    },
+    "confirm": {
+      "delete": "¿Eliminar este turno?"
+    },
+    "errors": {
+      "loadToday": "No se pudieron cargar las consultas de hoy.",
+      "delete": "No se pudo eliminar el turno."
+    },
+    "status": {
+      "scheduled": "Agendado",
+      "confirmed": "Confirmado",
+      "completed": "Completado",
+      "cancelled": "Cancelado",
+      "canceled": "Cancelado",
+      "no_show": "No asistió",
+      "done": "Realizado"
+    }
+  },
+  "auth": {
+    "logoAlt": "Logo de MyPaws",
+    "brand": {
+      "title": "MyPaws",
+      "subtitle": "Gestión simple y moderna para veterinarias. Clientes, mascotas y mucho más."
+    },
+    "login": {
+      "title": "Login",
+      "subtitle": "Ingresá con tu cuenta de veterinaria.",
+      "actions": {
+        "signIn": "Iniciar sesión",
+        "signingIn": "Entrando…",
+        "goToRegister": "No tengo cuenta → Registrarme"
+      }
+    },
+    "register": {
+      "title": "Registro",
+      "subtitle": "Creá tu cuenta de veterinaria para empezar.",
+      "fields": {
+        "clinicName": "Nombre de la veterinaria",
+        "clinicAddress": "Dirección de la veterinaria",
+        "confirmPassword": "Confirmar contraseña"
+      },
+      "placeholders": {
+        "clinicName": "Ej: MyPaws Centro",
+        "clinicAddress": "Ej: Av. Italia 1234",
+        "confirmPassword": "••••••••"
+      },
+      "actions": {
+        "createAccount": "Crear cuenta",
+        "creating": "Creando…",
+        "goToLogin": "Ya tengo cuenta → Iniciar sesión"
+      }
+    },
+    "fields": {
+      "email": "Email",
+      "password": "Contraseña"
+    },
+    "placeholders": {
+      "email": "tuemail@ejemplo.com",
+      "password": "••••••••"
+    },
+    "errors": {
+      "emailAlreadyInUse": "Ese email ya está registrado.",
+      "invalidEmail": "Email inválido.",
+      "weakPassword": "La contraseña debe tener al menos 6 caracteres.",
+      "invalidCredential": "Email o contraseña incorrectos.",
+      "userNotFound": "No existe una cuenta con ese email.",
+      "wrongPassword": "Contraseña incorrecta.",
+      "passwordMismatch": "Las contraseñas no coinciden.",
+      "clinicNameRequired": "El nombre de la veterinaria es obligatorio.",
+      "clinicAddressRequired": "La dirección de la veterinaria es obligatoria.",
+      "generic": "Ocurrió un error."
+    }
+  },
+  "pets": {
+    "form": {
+      "titleNew": "Nueva mascota",
+      "titleEdit": "Editar mascota",
+      "values": {
+        "na": "—"
+      },
+      "fields": {
+        "name": "Nombre",
+        "species": "Especie",
+        "breed": "Raza",
+        "sex": "Sexo",
+        "birthDate": "Fecha de nacimiento",
+        "weightKg": "Peso actual (kg)",
+        "allergies": "Alergias (separadas por coma)",
+        "chronicIllnesses": "Enfermedades crónicas (coma)",
+        "currentMedication": "Medicación actual (coma)"
+      },
+      "placeholders": {
+        "species": "Ej: dog / cat",
+        "weightKg": "Ej: 3.9",
+        "allergies": "Ej: pollo, polvo",
+        "chronicIllnesses": "Ej: dermatitis, asma",
+        "currentMedication": "Ej: prednisona, omeprazol"
+      },
+      "actions": {
+        "saving": "Guardando…",
+        "saveChanges": "Guardar cambios",
+        "create": "Crear mascota"
+      },
+      "errors": {
+        "notFound": "Mascota no encontrada",
+        "load": "No se pudo cargar la mascota",
+        "nameRequired": "El nombre es obligatorio",
+        "create": "No se pudo crear la mascota",
+        "update": "No se pudo guardar los cambios"
+      }
+    },
+    "details": {
+      "status": {
+        "loading": "Cargando…"
+      },
+      "errors": {
+        "notFound": "Mascota no encontrada",
+        "load": "No se pudo cargar la mascota",
+        "disable": "No se pudo desactivar la mascota",
+        "reactivate": "No se pudo reactivar la mascota"
+      },
+      "confirm": {
+        "disable": "¿Seguro que querés desactivar esta mascota? Podés reactivarla luego.",
+        "reactivate": "¿Reactivar esta mascota?"
+      },
+      "actions": {
+        "backToClient": "Volver al cliente",
+        "medicalHistory": "Historial médico",
+        "edit": "Editar",
+        "disable": "Desactivar",
+        "reactivate": "Reactivar"
+      },
+      "tooltips": {
+        "historyNeedsActive": "Reactivá la mascota para gestionar su historial"
+      },
+      "badges": {
+        "inactive": "Inactiva"
+      },
+      "labels": {
+        "species": "Especie",
+        "breed": "Raza",
+        "sex": "Sexo",
+        "birthDate": "Fecha de nacimiento",
+        "currentWeight": "Peso actual",
+        "allergies": "Alergias",
+        "chronicIllnesses": "Enfermedades crónicas",
+        "currentMedication": "Medicación actual",
+        "notes": "Notas"
+      },
+      "values": {
+        "na": "—",
+        "weightUnit": "kg",
+        "sex": {
+          "male": "Macho",
+          "female": "Hembra"
+        }
+      }
+    }
+  },
+  "medicalHistory": {
+    "list": {
+      "title": "Historial médico",
+      "status": {
+        "loading": "Cargando historial…"
+      },
+      "actions": {
+        "add": "+ Agregar consulta",
+        "delete": "Eliminar",
+        "back": "Volver"
+      },
+      "empty": "Todavía no hay consultas registradas.",
+      "labels": {
+        "diagnosis": "Diagnóstico",
+        "treatment": "Tratamiento",
+        "notes": "Notas"
+      },
+      "values": {
+        "noDate": "Sin fecha",
+        "noReason": "Sin motivo",
+        "photoCount": "{{count}}"
+      },
+      "confirm": {
+        "delete": "¿Eliminar esta consulta? Esta acción no se puede deshacer."
+      },
+      "errors": {
+        "load": "No se pudo cargar el historial médico.",
+        "delete": "No se pudo eliminar la consulta."
+      }
+    },
+    "form": {
+      "titleNew": "Nueva consulta",
+      "titleEdit": "Editar consulta",
+      "actions": {
+        "backToHistory": "Volver al historial",
+        "save": "Guardar",
+        "saving": "Guardando…",
+        "cancel": "Cancelar"
+      },
+      "fields": {
+        "date": "Fecha",
+        "reasonRequired": "Motivo (obligatorio)",
+        "diagnosis": "Diagnóstico",
+        "treatment": "Tratamiento / Indicaciones",
+        "notes": "Notas",
+        "photosOptional": "Fotos (opcional)",
+        "existingPhotos": "Fotos ya adjuntas"
+      },
+      "errors": {
+        "notFound": "No se encontró la consulta.",
+        "load": "No se pudo cargar la consulta.",
+        "needAuth": "Usuario no autenticado",
+        "dateRequired": "La fecha es obligatoria",
+        "reasonRequired": "El motivo es obligatorio",
+        "save": "No se pudo guardar"
+      }
+    }
+  }
+}

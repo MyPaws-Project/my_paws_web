@@ -1,23 +1,15 @@
-import { useState } from 'react';
-import { login, register } from '../../services/firebase/auth.service';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
+import { login, register } from '../../services/firebase/auth.service';
 
 import logo from '../../assets/mypaws-logo.png';
 import './login.css';
 
-const friendlyAuthError = (err) => {
-  const code = err?.code || '';
-  if (code === 'auth/email-already-in-use') return 'Ese email ya está registrado.';
-  if (code === 'auth/invalid-email') return 'Email inválido.';
-  if (code === 'auth/weak-password') return 'La contraseña debe tener al menos 6 caracteres.';
-  if (code === 'auth/invalid-credential') return 'Email o contraseña incorrectos.';
-  if (code === 'auth/user-not-found') return 'No existe una cuenta con ese email.';
-  if (code === 'auth/wrong-password') return 'Contraseña incorrecta.';
-  return err?.message || 'Ocurrió un error.';
-};
-
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [mode, setMode] = useState('login');
   const isRegister = mode === 'register';
@@ -32,33 +24,50 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const friendlyAuthError = useMemo(() => {
+    return (err) => {
+      const code = err?.code || '';
+
+      if (code === 'auth/email-already-in-use') return t('auth.errors.emailAlreadyInUse');
+      if (code === 'auth/invalid-email') return t('auth.errors.invalidEmail');
+      if (code === 'auth/weak-password') return t('auth.errors.weakPassword');
+      if (code === 'auth/invalid-credential') return t('auth.errors.invalidCredential');
+      if (code === 'auth/user-not-found') return t('auth.errors.userNotFound');
+      if (code === 'auth/wrong-password') return t('auth.errors.wrongPassword');
+
+      return err?.message || t('auth.errors.generic');
+    };
+  }, [t]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
+      const emailTrimmed = email.trim();
+
       if (isRegister) {
         if (password !== confirmPassword) {
-          throw new Error('Las contraseñas no coinciden');
+          throw new Error(t('auth.errors.passwordMismatch'));
         }
 
         const nameTrimmed = clinicName.trim();
         if (!nameTrimmed) {
-          throw new Error('El nombre de la veterinaria es obligatorio');
+          throw new Error(t('auth.errors.clinicNameRequired'));
         }
 
         const addressTrimmed = clinicAddress.trim();
         if (!addressTrimmed) {
-          throw new Error('La dirección de la veterinaria es obligatoria');
+          throw new Error(t('auth.errors.clinicAddressRequired'));
         }
 
-        await register(email.trim(), password, {
+        await register(emailTrimmed, password, {
           clinicName: nameTrimmed,
           clinicAddress: addressTrimmed,
         });
       } else {
-        await login(email.trim(), password);
+        await login(emailTrimmed, password);
       }
 
       navigate('/dashboard');
@@ -81,19 +90,19 @@ export default function Login() {
   return (
     <div className="auth-page">
       <div className="auth-brand">
-        <h2>MyPaws</h2>
-        <p>Gestión simple y moderna para veterinarias. Clientes, mascotas y mucho más.</p>
+        <h2>{t('auth.brand.title')}</h2>
+        <p>{t('auth.brand.subtitle')}</p>
       </div>
 
       <div className="auth-card">
         <div className="auth-form-wrapper">
           <header className="auth-header">
-            <img className="auth-logo" src={logo} alt="MyPaws logo" />
-            <h1 className="auth-title">{isRegister ? 'Registro' : 'Login'}</h1>
+            <img className="auth-logo" src={logo} alt={t('auth.logoAlt')} />
+            <h1 className="auth-title">
+              {isRegister ? t('auth.register.title') : t('auth.login.title')}
+            </h1>
             <p className="auth-subtitle">
-              {isRegister
-                ? 'Creá tu cuenta de veterinaria para empezar.'
-                : 'Ingresá con tu cuenta de veterinaria.'}
+              {isRegister ? t('auth.register.subtitle') : t('auth.login.subtitle')}
             </p>
           </header>
 
@@ -101,64 +110,64 @@ export default function Login() {
             {isRegister && (
               <>
                 <label className="auth-field">
-                  <span>Nombre de la veterinaria</span>
+                  <span>{t('auth.register.fields.clinicName')}</span>
                   <input
                     type="text"
                     value={clinicName}
                     onChange={(e) => setClinicName(e.target.value)}
                     required
-                    placeholder="Ej: MyPaws Centro"
+                    placeholder={t('auth.register.placeholders.clinicName')}
                   />
                 </label>
 
                 <label className="auth-field">
-                  <span>Dirección de la veterinaria</span>
+                  <span>{t('auth.register.fields.clinicAddress')}</span>
                   <input
                     type="text"
                     value={clinicAddress}
                     onChange={(e) => setClinicAddress(e.target.value)}
                     required
                     autoComplete="street-address"
-                    placeholder="Ej: Av. Italia 1234"
+                    placeholder={t('auth.register.placeholders.clinicAddress')}
                   />
                 </label>
               </>
             )}
 
             <label className="auth-field">
-              <span>Email</span>
+              <span>{t('auth.fields.email')}</span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                placeholder="tuemail@ejemplo.com"
+                placeholder={t('auth.placeholders.email')}
               />
             </label>
 
             <label className="auth-field">
-              <span>Contraseña</span>
+              <span>{t('auth.fields.password')}</span>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete={isRegister ? 'new-password' : 'current-password'}
-                placeholder="••••••••"
+                placeholder={t('auth.placeholders.password')}
               />
             </label>
 
             {isRegister && (
               <label className="auth-field">
-                <span>Confirmar contraseña</span>
+                <span>{t('auth.register.fields.confirmPassword')}</span>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   autoComplete="new-password"
-                  placeholder="••••••••"
+                  placeholder={t('auth.register.placeholders.confirmPassword')}
                 />
               </label>
             )}
@@ -168,20 +177,15 @@ export default function Login() {
             <button type="submit" disabled={loading} className="auth-primary">
               {loading
                 ? isRegister
-                  ? 'Creando…'
-                  : 'Entrando…'
+                  ? t('auth.register.actions.creating')
+                  : t('auth.login.actions.signingIn')
                 : isRegister
-                ? 'Crear cuenta'
-                : 'Iniciar sesión'}
+                ? t('auth.register.actions.createAccount')
+                : t('auth.login.actions.signIn')}
             </button>
 
-            <button
-              type="button"
-              onClick={toggleMode}
-              disabled={loading}
-              className="auth-link"
-            >
-              {isRegister ? 'Ya tengo cuenta → Iniciar sesión' : 'No tengo cuenta → Registrarme'}
+            <button type="button" onClick={toggleMode} disabled={loading} className="auth-link">
+              {isRegister ? t('auth.register.actions.goToLogin') : t('auth.login.actions.goToRegister')}
             </button>
           </form>
         </div>

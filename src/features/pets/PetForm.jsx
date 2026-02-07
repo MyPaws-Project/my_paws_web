@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { createPet, getPetById, updatePet } from '../../services/pets/pets.service';
-import './petForm.css';
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { createPet, getPetById, updatePet } from "../../services/pets/pets.service";
+import "./petForm.css";
 
 const toArray = (s) =>
-  (s ?? '')
-    .split(',')
+  (s ?? "")
+    .split(",")
     .map((x) => x.trim())
     .filter(Boolean);
 
@@ -14,56 +15,56 @@ export default function PetForm() {
   const isEdit = Boolean(petId);
 
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState({
-    name: '',
-    species: '',
-    breed: '',
-    sex: '',
-    birthDate: '',
-    weightKg: '',
-    allergies: '',
-    chronicIllnesses: '',
-    currentMedication: '',
-    notes: '',
+    name: "",
+    species: "",
+    breed: "",
+    sex: "",
+    birthDate: "",
+    weightKg: "",
+    allergies: "",
+    chronicIllnesses: "",
+    currentMedication: "",
+    notes: ""
   });
 
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [errorKey, setErrorKey] = useState("");
 
   useEffect(() => {
     let alive = true;
 
     const load = async () => {
       try {
-        setError('');
+        setErrorKey("");
         setLoading(true);
 
         const data = await getPetById(clientId, petId);
-
         if (!alive) return;
 
         if (!data) {
-          setError('Mascota no encontrada');
+          setErrorKey("pets.form.errors.notFound");
           return;
         }
 
         setForm({
-          name: data.name ?? '',
-          species: data.species ?? '',
-          breed: data.breed ?? '',
-          sex: data.sex ?? '',
-          birthDate: data.birthDate ?? '',
-          weightKg: data.weightKg ?? '',
-          allergies: Array.isArray(data.allergies) ? data.allergies.join(', ') : '',
-          chronicIllnesses: Array.isArray(data.chronicIllnesses) ? data.chronicIllnesses.join(', ') : '',
-          currentMedication: Array.isArray(data.currentMedication) ? data.currentMedication.join(', ') : '',
-          notes: data.notes ?? '',
+          name: data.name ?? "",
+          species: data.species ?? "",
+          breed: data.breed ?? "",
+          sex: data.sex ?? "",
+          birthDate: data.birthDate ?? "",
+          weightKg: data.weightKg == null ? "" : String(data.weightKg),
+          allergies: Array.isArray(data.allergies) ? data.allergies.join(", ") : "",
+          chronicIllnesses: Array.isArray(data.chronicIllnesses) ? data.chronicIllnesses.join(", ") : "",
+          currentMedication: Array.isArray(data.currentMedication) ? data.currentMedication.join(", ") : "",
+          notes: data.notes ?? ""
         });
       } catch (e) {
         if (!alive) return;
-        setError('No se pudo cargar la mascota');
+        setErrorKey("pets.form.errors.load");
       } finally {
         if (alive) setLoading(false);
       }
@@ -74,7 +75,7 @@ export default function PetForm() {
     return () => {
       alive = false;
     };
-  }, [isEdit, clientId, petId]);
+  }, [isEdit, clientId, petId, t]);
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -86,27 +87,28 @@ export default function PetForm() {
 
     const nameTrimmed = form.name.trim();
     if (!nameTrimmed) {
-      setError('El nombre es obligatorio');
+      setErrorKey("pets.form.errors.nameRequired");
       return;
     }
 
-    const weightNum = form.weightKg === '' || form.weightKg == null ? null : Number(form.weightKg);
+    const weightNum =
+      form.weightKg === "" || form.weightKg == null ? null : Number(form.weightKg);
 
     const payload = {
       name: nameTrimmed,
-      species: form.species ?? '',
-      breed: form.breed ?? '',
-      sex: form.sex ?? '',
-      birthDate: form.birthDate ?? '',
+      species: form.species ?? "",
+      breed: form.breed ?? "",
+      sex: form.sex ?? "",
+      birthDate: form.birthDate ?? "",
       weightKg: Number.isFinite(weightNum) ? weightNum : null,
       allergies: toArray(form.allergies),
       chronicIllnesses: toArray(form.chronicIllnesses),
       currentMedication: toArray(form.currentMedication),
-      notes: form.notes ?? '',
+      notes: form.notes ?? ""
     };
 
     try {
-      setError('');
+      setErrorKey("");
       setSaving(true);
 
       if (isEdit) {
@@ -117,7 +119,7 @@ export default function PetForm() {
         navigate(`/clients/${clientId}/pets/${newId}`);
       }
     } catch (err) {
-      setError(isEdit ? 'No se pudo guardar los cambios' : 'No se pudo crear la mascota');
+      setErrorKey(isEdit ? "pets.form.errors.update" : "pets.form.errors.create");
     } finally {
       setSaving(false);
     }
@@ -128,19 +130,15 @@ export default function PetForm() {
     else navigate(`/clients/${clientId}`);
   };
 
-  if (loading) return <div className="pf-status">Cargando…</div>;
+  if (loading) return <div className="pf-status">{t("common.loading")}</div>;
 
-  if (error && isEdit) {
+  if (errorKey === "pets.form.errors.notFound" && isEdit) {
     return (
       <div className="pf-page">
         <div className="pf-status">
-          <p className="pf-error">{error}</p>
-          <button
-            className="btn-secondary"
-            onClick={() => navigate(`/clients/${clientId}`)}
-            disabled={saving}
-          >
-            Volver
+          <p className="pf-error">{t(errorKey)}</p>
+          <button className="btn-secondary" onClick={() => navigate(`/clients/${clientId}`)} disabled={saving}>
+            {t("common.back")}
           </button>
         </div>
       </div>
@@ -150,66 +148,48 @@ export default function PetForm() {
   return (
     <div className="pf-page">
       <button className="pf-back" onClick={goBack} disabled={saving}>
-        ← Volver
+        ← {t("common.back")}
       </button>
 
-      <h1 className="pf-title">{isEdit ? 'Editar mascota' : 'Nueva mascota'}</h1>
+      <h1 className="pf-title">{isEdit ? t("pets.form.titleEdit") : t("pets.form.titleNew")}</h1>
 
-      {error ? <p className="pf-error">{error}</p> : null}
+      {errorKey ? <p className="pf-error">{t(errorKey)}</p> : null}
 
       <form className="pf-form card" onSubmit={onSubmit}>
         <div className="pf-grid">
           <div className="pf-field pf-span-2">
-            <label className="pf-label">Nombre *</label>
-            <input
-              className="pf-input"
-              name="name"
-              value={form.name}
-              onChange={onChange}
-              disabled={saving}
-            />
+            <label className="pf-label">{t("pets.form.fields.name")} *</label>
+            <input className="pf-input" name="name" value={form.name} onChange={onChange} disabled={saving} />
           </div>
 
           <div className="pf-field">
-            <label className="pf-label">Especie</label>
+            <label className="pf-label">{t("pets.form.fields.species")}</label>
             <input
               className="pf-input"
               name="species"
               value={form.species}
               onChange={onChange}
               disabled={saving}
-              placeholder="Ej: dog / cat"
+              placeholder={t("pets.form.placeholders.species")}
             />
           </div>
 
           <div className="pf-field">
-            <label className="pf-label">Raza</label>
-            <input
-              className="pf-input"
-              name="breed"
-              value={form.breed}
-              onChange={onChange}
-              disabled={saving}
-            />
+            <label className="pf-label">{t("pets.form.fields.breed")}</label>
+            <input className="pf-input" name="breed" value={form.breed} onChange={onChange} disabled={saving} />
           </div>
 
           <div className="pf-field">
-            <label className="pf-label">Sexo</label>
-            <select
-              className="pf-input"
-              name="sex"
-              value={form.sex}
-              onChange={onChange}
-              disabled={saving}
-            >
-              <option value="">—</option>
-              <option value="male">Macho</option>
-              <option value="female">Hembra</option>
+            <label className="pf-label">{t("pets.form.fields.sex")}</label>
+            <select className="pf-input" name="sex" value={form.sex} onChange={onChange} disabled={saving}>
+              <option value="">{t("pets.form.values.na")}</option>
+              <option value="male">{t("pets.details.values.sex.male")}</option>
+              <option value="female">{t("pets.details.values.sex.female")}</option>
             </select>
           </div>
 
           <div className="pf-field">
-            <label className="pf-label">Fecha de nacimiento</label>
+            <label className="pf-label">{t("pets.form.fields.birthDate")}</label>
             <input
               className="pf-input"
               type="date"
@@ -221,7 +201,7 @@ export default function PetForm() {
           </div>
 
           <div className="pf-field">
-            <label className="pf-label">Peso actual (kg)</label>
+            <label className="pf-label">{t("pets.form.fields.weightKg")}</label>
             <input
               className="pf-input"
               type="number"
@@ -230,48 +210,48 @@ export default function PetForm() {
               value={form.weightKg}
               onChange={onChange}
               disabled={saving}
-              placeholder="Ej: 3.9"
+              placeholder={t("pets.form.placeholders.weightKg")}
             />
           </div>
 
           <div className="pf-field pf-span-2">
-            <label className="pf-label">Alergias (separadas por coma)</label>
+            <label className="pf-label">{t("pets.form.fields.allergies")}</label>
             <input
               className="pf-input"
               name="allergies"
               value={form.allergies}
               onChange={onChange}
               disabled={saving}
-              placeholder="Ej: pollo, polvo"
+              placeholder={t("pets.form.placeholders.allergies")}
             />
           </div>
 
           <div className="pf-field pf-span-2">
-            <label className="pf-label">Enfermedades crónicas (coma)</label>
+            <label className="pf-label">{t("pets.form.fields.chronicIllnesses")}</label>
             <input
               className="pf-input"
               name="chronicIllnesses"
               value={form.chronicIllnesses}
               onChange={onChange}
               disabled={saving}
-              placeholder="Ej: dermatitis, asma"
+              placeholder={t("pets.form.placeholders.chronicIllnesses")}
             />
           </div>
 
           <div className="pf-field pf-span-2">
-            <label className="pf-label">Medicación actual (coma)</label>
+            <label className="pf-label">{t("pets.form.fields.currentMedication")}</label>
             <input
               className="pf-input"
               name="currentMedication"
               value={form.currentMedication}
               onChange={onChange}
               disabled={saving}
-              placeholder="Ej: prednisona, omeprazol"
+              placeholder={t("pets.form.placeholders.currentMedication")}
             />
           </div>
 
           <div className="pf-field pf-span-2">
-            <label className="pf-label">Notas</label>
+            <label className="pf-label">{t("common.notes")}</label>
             <textarea
               className="pf-textarea"
               name="notes"
@@ -285,11 +265,11 @@ export default function PetForm() {
 
         <div className="pf-actions">
           <button className="btn-primary" type="submit" disabled={saving}>
-            {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear mascota'}
+            {saving ? t("pets.form.actions.saving") : isEdit ? t("pets.form.actions.saveChanges") : t("pets.form.actions.create")}
           </button>
 
           <button className="btn-secondary" type="button" onClick={goBack} disabled={saving}>
-            Cancelar
+            {t("common.cancel")}
           </button>
         </div>
       </form>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
+import { useTranslation } from "react-i18next";
 
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -29,44 +30,6 @@ function normalizeStatus(s) {
   return v || "scheduled";
 }
 
-function statusLabel(s) {
-  const v = normalizeStatus(s);
-  if (v === "scheduled") return "Programado";
-  if (v === "cancelled") return "Cancelado";
-  if (v === "done") return "Realizado";
-  return v;
-}
-
-function fmtTime(d) {
-  if (!d) return "";
-  try {
-    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return "";
-  }
-}
-
-function fmtDateOnly(d) {
-  if (!d) return "";
-  try {
-    return d.toLocaleDateString([], {
-      weekday: "long",
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    });
-  } catch {
-    return "";
-  }
-}
-
-function fmtRange(start, end) {
-  if (!start) return "";
-  const s = fmtTime(start);
-  const e = end ? fmtTime(end) : "";
-  return e ? `${s}–${e}` : s;
-}
-
 function ymd(date) {
   const d = new Date(date);
   const yyyy = d.getFullYear();
@@ -77,14 +40,49 @@ function ymd(date) {
 
 export default function AppointmentsCalendar() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
 
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
-
   const [selectedAppt, setSelectedAppt] = useState(null);
+
+  const formatTime = (d) => {
+    if (!d) return "";
+    try {
+      return d.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "";
+    }
+  };
+
+  const formatDateOnly = (d) => {
+    if (!d) return "";
+    try {
+      return d.toLocaleDateString(i18n.language, {
+        weekday: "long",
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  const formatRange = (start, end) => {
+    if (!start) return "";
+    const s = formatTime(start);
+    const e = end ? formatTime(end) : "";
+    return e ? `${s}–${e}` : s;
+  };
+
+  const statusLabel = (s) => {
+    const v = normalizeStatus(s);
+    return t(`appointments.status.${v}`, { defaultValue: v });
+  };
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u || null));
@@ -114,9 +112,9 @@ export default function AppointmentsCalendar() {
           uniqueClientIds.map(async (clientId) => {
             try {
               const c = await getClientById(clientId);
-              return [clientId, c?.fullName || "(Cliente)"];
+              return [clientId, c?.fullName || t("appointments.calendar.clientUnnamed")];
             } catch {
-              return [clientId, "(Cliente)"];
+              return [clientId, t("appointments.calendar.clientUnnamed")];
             }
           })
         );
@@ -131,10 +129,10 @@ export default function AppointmentsCalendar() {
             if (!start) return null;
 
             const clientName = a.clientId
-              ? clientMap[a.clientId] || "Cliente"
-              : "Cliente";
+              ? clientMap[a.clientId] || t("appointments.calendar.clientFallback")
+              : t("appointments.calendar.clientFallback");
 
-            const reason = a.reason || "Consulta";
+            const reason = a.reason || t("appointments.calendar.defaultReason");
             const status = normalizeStatus(a.status || "scheduled");
 
             return {
@@ -158,16 +156,15 @@ export default function AppointmentsCalendar() {
         if (!alive) return;
         setEvents(evs);
       } catch (e) {
-        console.error("ERROR cargando calendario:", e);
+        console.error("ERROR loading calendar:", e);
         const msg = String(e?.message || "");
-        if (msg.includes("building")) {
-          setError(
-            "El índice del calendario se está creando en Firebase. Esperá un momento y tocá Reintentar."
-          );
+
+        if (msg.toLowerCase().includes("building")) {
+          setError(t("appointments.calendar.errors.indexBuilding"));
         } else if (msg.toLowerCase().includes("index")) {
-          setError("Falta crear un índice en Firestore para el calendario.");
+          setError(t("appointments.calendar.errors.missingIndex"));
         } else {
-          setError(msg || "No se pudo cargar el calendario.");
+          setError(msg || t("appointments.calendar.errors.load"));
         }
       } finally {
         if (alive) setLoading(false);
@@ -179,7 +176,7 @@ export default function AppointmentsCalendar() {
     return () => {
       alive = false;
     };
-  }, [user?.uid, reloadKey]);
+  }, [user?.uid, reloadKey, t]);
 
   const nowScrollTime = useMemo(() => {
     const d = new Date();
@@ -198,26 +195,30 @@ export default function AppointmentsCalendar() {
     return map;
   }, [events]);
 
-  if (loading) return <p className="ac-status">Cargando calendario...</p>;
-  if (!user?.uid) return <p className="ac-status">Tenés que iniciar sesión.</p>;
+  const subtitle = useMemo(() => {
+    const count = events.length;
+    const apptWord = t("appointments.calendar.subtitle.appts", { count });
+    return t("appointments.calendar.subtitle.text", { count, apptWord });
+  }, [events.length, t]);
+
+  if (loading) return <p className="ac-status">{t("appointments.calendar.loading")}</p>;
+  if (!user?.uid) return <p className="ac-status">{t("appointments.calendar.needLogin")}</p>;
 
   return (
     <div className="ac-page">
       <div className="ac-header">
         <div className="ac-headings">
-          <h1 className="ac-title">Calendario de turnos</h1>
-          <p className="ac-subtitle">
-            {events.length} turno(s) · Horario 08:00–20:00 · Click en un turno para ver detalles
-          </p>
+          <h1 className="ac-title">{t("appointments.calendar.title")}</h1>
+          <p className="ac-subtitle">{subtitle}</p>
         </div>
 
         <div className="ac-actions">
           <button className="btn-secondary" onClick={() => navigate("/dashboard")}>
-            Volver
+            {t("appointments.calendar.actions.back")}
           </button>
 
           <button className="btn-secondary" onClick={() => setReloadKey((k) => k + 1)}>
-            Reintentar
+            {t("appointments.calendar.actions.retry")}
           </button>
         </div>
       </div>
@@ -262,7 +263,9 @@ export default function AppointmentsCalendar() {
               <div className="ac-daycell">
                 <div className="ac-daynum">{n}</div>
                 {count > 0 ? (
-                  <div className="ac-daybadge">{count} turnos</div>
+                  <div className="ac-daybadge">
+                    {t("appointments.calendar.dayBadge", { count })}
+                  </div>
                 ) : null}
               </div>
             );
@@ -277,25 +280,26 @@ export default function AppointmentsCalendar() {
               id: ev.id,
               start: ev.start,
               end: ev.end,
-              reason: props.reason || "Consulta",
+              reason: props.reason || t("appointments.calendar.defaultReason"),
               status: normalizeStatus(props.status || "scheduled"),
               notes: props.notes || "",
               clientId: props.clientId || null,
               petId: props.petId || null,
-              clientName: props.clientName || ev.title || "Cliente",
+              clientName: props.clientName || ev.title || t("appointments.calendar.clientFallback"),
             });
           }}
           eventContent={(arg) => {
             const props = arg.event.extendedProps || {};
-            const clientName = props.clientName || arg.event.title || "Cliente";
-            const reason = props.reason || "Consulta";
+            const clientName =
+              props.clientName || arg.event.title || t("appointments.calendar.clientFallback");
+            const reason = props.reason || t("appointments.calendar.defaultReason");
 
             const start = arg.event.start;
             const end = arg.event.end;
 
             return (
               <div className="fc-appt">
-                <div className="fc-appt-time">{fmtRange(start, end)}</div>
+                <div className="fc-appt-time">{formatRange(start, end)}</div>
                 <div className="fc-appt-title">{clientName}</div>
                 <div className="fc-appt-reason">{reason}</div>
               </div>
@@ -305,22 +309,22 @@ export default function AppointmentsCalendar() {
             const start = info.date;
             const end = new Date(start.getTime() + 30 * 60 * 1000);
             navigate(
-              `/appointments/new?start=${encodeURIComponent(
-                start.toISOString()
-              )}&end=${encodeURIComponent(end.toISOString())}`
+              `/appointments/new?start=${encodeURIComponent(start.toISOString())}&end=${encodeURIComponent(
+                end.toISOString()
+              )}`
             );
           }}
           select={(info) => {
             navigate(
-              `/appointments/new?start=${encodeURIComponent(
-                info.start.toISOString()
-              )}&end=${encodeURIComponent(info.end.toISOString())}`
+              `/appointments/new?start=${encodeURIComponent(info.start.toISOString())}&end=${encodeURIComponent(
+                info.end.toISOString()
+              )}`
             );
           }}
         />
       </div>
 
-      <p className="ac-help">Haz click sobre una hora libre para crear un turno.</p>
+      <p className="ac-help">{t("appointments.calendar.help")}</p>
 
       {selectedAppt ? (
         <div
@@ -338,10 +342,8 @@ export default function AppointmentsCalendar() {
               <div>
                 <div className="ac-modal-title">{selectedAppt.clientName}</div>
                 <div className="ac-modal-sub">
-                  {fmtDateOnly(selectedAppt.start)}
-                  {selectedAppt.start
-                    ? ` · ${fmtRange(selectedAppt.start, selectedAppt.end)}`
-                    : ""}
+                  {formatDateOnly(selectedAppt.start)}
+                  {selectedAppt.start ? ` · ${formatRange(selectedAppt.start, selectedAppt.end)}` : ""}
                 </div>
               </div>
 
@@ -352,12 +354,12 @@ export default function AppointmentsCalendar() {
 
             <div className="ac-modal-body">
               <div className="ac-kv">
-                <span>Motivo</span>
+                <span>{t("appointments.calendar.modal.reason")}</span>
                 <strong>{selectedAppt.reason}</strong>
               </div>
 
               <div className="ac-kv">
-                <span>Estado</span>
+                <span>{t("appointments.calendar.modal.status")}</span>
                 <strong className={`ac-status-pill ac-status-${selectedAppt.status}`}>
                   {statusLabel(selectedAppt.status)}
                 </strong>
@@ -365,7 +367,7 @@ export default function AppointmentsCalendar() {
 
               {selectedAppt.notes ? (
                 <div className="ac-notes">
-                  <div className="ac-notes-label">Notas</div>
+                  <div className="ac-notes-label">{t("appointments.calendar.modal.notes")}</div>
                   <div className="ac-notes-box">{selectedAppt.notes}</div>
                 </div>
               ) : null}
@@ -376,7 +378,7 @@ export default function AppointmentsCalendar() {
                     className="btn-secondary"
                     onClick={() => navigate(`/clients/${selectedAppt.clientId}`)}
                   >
-                    Ver cliente
+                    {t("appointments.calendar.modal.viewClient")}
                   </button>
                 ) : null}
 
@@ -384,7 +386,7 @@ export default function AppointmentsCalendar() {
                   className="btn-primary"
                   onClick={() => navigate(`/appointments/${selectedAppt.id}/edit`)}
                 >
-                  Editar turno
+                  {t("appointments.calendar.modal.editAppointment")}
                 </button>
               </div>
             </div>
