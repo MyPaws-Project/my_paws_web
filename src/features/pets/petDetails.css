@@ -152,6 +152,160 @@
   opacity: 0.95;
 }
 
+.pd-photos {
+  margin-top: 16px;
+}
+
+.pd-photos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pd-photos-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.pd-upload-row {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pd-file {
+  max-width: 100%;
+}
+
+.pd-uploading {
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.pd-preview {
+  margin-top: 12px;
+}
+
+.pd-preview img {
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.pd-album-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 9999;
+}
+
+.pd-album {
+  width: min(920px, 100%);
+  max-height: 85vh;
+  overflow: auto;
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.pd-album-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pd-album-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.pd-album-status {
+  margin: 12px 0 0 0;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.pd-album-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.pd-album-thumb {
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pd-album-thumb img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: block;
+}
+
+.pd-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10000;
+}
+
+.pd-viewer {
+  position: relative;
+  width: min(980px, 100%);
+  max-height: 90vh;
+}
+
+.pd-viewer-close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pd-viewer-img {
+  width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  display: block;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 @media (max-width: 820px) {
   .pd-grid {
     grid-template-columns: 1fr;

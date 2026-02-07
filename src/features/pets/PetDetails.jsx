@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getPetById, disablePet, reactivatePet } from "../../services/pets/pets.service";
+import { uploadPetImage } from "../../services/cloudinary/cloudinary.service";
+import { addPetPhoto, listPetPhotos } from "../../services/pets/petPhotos.service";
 import "./petDetails.css";
 
 const formatList = (arr, fallback) => {
@@ -12,22 +14,43 @@ const formatList = (arr, fallback) => {
 export default function PetDetails() {
   const { id: clientId, petId } = useParams();
   const navigate = useNavigate();
-  const { t } =useTranslation();
+  const { t } = useTranslation();
 
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [uploading, setUploading] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState("");
+
+  const [photos, setPhotos] = useState([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
+  const [albumOpen, setAlbumOpen] = useState(false);
+
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+
   const [errorKey, setErrorKey] = useState("");
 
   const isInactive = useMemo(() => pet?.active === false, [pet]);
-
   const NA = t("pets.details.values.na");
 
   const sexLabel = (sex) => {
     if (sex === "male") return t("pets.details.values.sex.male");
     if (sex === "female") return t("pets.details.values.sex.female");
     return NA;
+  };
+
+  const loadPhotos = async () => {
+    try {
+      setLoadingPhotos(true);
+      const data = await listPetPhotos(clientId, petId);
+      setPhotos(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error loading photos:", err);
+      setPhotos([]);
+    } finally {
+      setLoadingPhotos(false);
+    }
   };
 
   useEffect(() => {
@@ -56,7 +79,10 @@ export default function PetDetails() {
       }
     };
 
-    if (clientId && petId) load();
+    if (clientId && petId) {
+      load();
+      loadPhotos();
+    }
 
     return () => {
       alive = false;
@@ -98,6 +124,46 @@ export default function PetDetails() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleUploadPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setErrorKey("");
+      setUploading(true);
+
+      const result = await uploadPetImage(file, clientId, petId);
+      await addPetPhoto(clientId, petId, result);
+
+      setPhotoUrl(result.url);
+      await loadPhotos();
+    } catch (err) {
+      console.error(err);
+      alert("Error subiendo la foto (mirá la consola)");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleOpenAlbum = async () => {
+    setAlbumOpen(true);
+    await loadPhotos();
+  };
+
+  const handleCloseAlbum = () => {
+    setAlbumOpen(false);
+    setSelectedPhoto(null);
+  };
+
+  const handleOpenViewer = (photo) => {
+    setSelectedPhoto(photo);
+  };
+
+  const handleCloseViewer = () => {
+    setSelectedPhoto(null);
   };
 
   if (loading) return <div className="pd-status">{t("pets.details.status.loading")}</div>;
@@ -215,6 +281,84 @@ export default function PetDetails() {
           ) : null}
         </div>
       </section>
+
+      <section className="card pd-card pd-photos">
+        <div className="pd-photos-header">
+          <h2 className="pd-photos-title">Fotos</h2>
+
+          <button
+            className="btn-secondary"
+            onClick={handleOpenAlbum}
+            disabled={saving || uploading}
+            title="Ver todas las fotos"
+          >
+            Ver álbum ({photos.length})
+          </button>
+        </div>
+
+        <div className="pd-upload-row">
+          <input
+            className="pd-file"
+            type="file"
+            accept="image/*"
+            onChange={handleUploadPhoto}
+            disabled={uploading || saving}
+          />
+
+          {uploading ? <span className="pd-uploading">Subiendo...</span> : null}
+        </div>
+
+        {photoUrl ? (
+          <div className="pd-preview">
+            <img src={photoUrl} alt="Pet" />
+          </div>
+        ) : null}
+      </section>
+
+      {albumOpen ? (
+        <div className="pd-album-overlay" onClick={handleCloseAlbum} role="dialog" aria-modal="true">
+          <div className="pd-album" onClick={(e) => e.stopPropagation()}>
+            <div className="pd-album-header">
+              <h3 className="pd-album-title">Álbum de {pet?.name || t("common.unnamed")}</h3>
+
+              <button className="btn-secondary" onClick={handleCloseAlbum}>
+                Cerrar
+              </button>
+            </div>
+
+            {loadingPhotos ? (
+              <p className="pd-album-status">Cargando fotos...</p>
+            ) : photos.length === 0 ? (
+              <p className="pd-album-status">Todavía no hay fotos.</p>
+            ) : (
+              <div className="pd-album-grid">
+                {photos.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="pd-album-thumb"
+                    onClick={() => handleOpenViewer(p)}
+                    title="Abrir"
+                  >
+                    <img src={p.url} alt="pet" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {selectedPhoto ? (
+        <div className="pd-viewer-overlay" onClick={handleCloseViewer} role="dialog" aria-modal="true">
+          <div className="pd-viewer" onClick={(e) => e.stopPropagation()}>
+            <button className="pd-viewer-close" type="button" onClick={handleCloseViewer}>
+              ✕
+            </button>
+            <img className="pd-viewer-img" src={selectedPhoto.url} alt="pet" />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
