@@ -149,7 +149,7 @@
       },
       "subtitle": {
         "appts": "appointment(s)",
-  			"text": "{{count}} {{apptWord}} · Hours 08:00–20:00 · Click an appointment to view details"
+        "text": "{{count}} {{apptWord}} · Hours 08:00–20:00 · Click an appointment to view details"
       },
       "errors": {
         "load": "Couldn't load the calendar.",
@@ -411,6 +411,35 @@
         "reasonRequired": "Reason is required",
         "save": "Couldn't save"
       }
+    }
+  },
+  "clinicProfile": {
+    "title": "Clinic profile",
+    "loading": "Loading profile…",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "empty": "—",
+    "fields": {
+      "name": "Name",
+      "address": "Address",
+      "email": "Email"
+    },
+    "labels": {
+      "clinicName": "Clinic name",
+      "clinicAddress": "Clinic address",
+      "email": "Email"
+    },
+    "hints": {
+      "emailAuth": "If you want to change the login email, it must be updated in Firebase Auth as well."
+    },
+    "errors": {
+      "notAuth": "User not authenticated",
+      "load": "Error loading clinic data",
+      "save": "Error saving changes",
+      "nameRequired": "Clinic name is required",
+      "addressRequired": "Clinic address is required",
+      "emailRequired": "Email is required"
     }
   }
 }

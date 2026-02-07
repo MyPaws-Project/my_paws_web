@@ -149,7 +149,7 @@
       },
       "subtitle": {
         "appts": "turno(s)",
-  			"text": "{{count}} {{apptWord}} · Hours 08:00–20:00 · Click an appointment to view details"
+        "text": "{{count}} {{apptWord}} · Horario 08:00–20:00 · Hacé click en un turno para ver detalles"
       },
       "errors": {
         "load": "No se pudo cargar el calendario.",
@@ -411,6 +411,35 @@
         "reasonRequired": "El motivo es obligatorio",
         "save": "No se pudo guardar"
       }
+    }
+  },
+  "clinicProfile": {
+    "title": "Perfil de la clínica",
+    "loading": "Cargando perfil…",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "empty": "—",
+    "fields": {
+      "name": "Nombre",
+      "address": "Dirección",
+      "email": "Email"
+    },
+    "labels": {
+      "clinicName": "Nombre de la veterinaria",
+      "clinicAddress": "Dirección",
+      "email": "Email"
+    },
+    "hints": {
+      "emailAuth": "Si querés cambiar el email de inicio de sesión, también hay que actualizarlo en Firebase Auth."
+    },
+    "errors": {
+      "notAuth": "Usuario no autenticado",
+      "load": "Error cargando datos de la clínica",
+      "save": "Error guardando cambios",
+      "nameRequired": "El nombre de la veterinaria es obligatorio",
+      "addressRequired": "La dirección de la veterinaria es obligatoria",
+      "emailRequired": "El email es obligatorio"
     }
   }
 }

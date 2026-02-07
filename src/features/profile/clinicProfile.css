@@ -88,6 +88,12 @@
   box-shadow: 0 0 0 3px rgba(92, 158, 63, 0.15);
 }
 
+.cp-hint {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
 .cp-readonly {
   display: grid;
   gap: 12px;
