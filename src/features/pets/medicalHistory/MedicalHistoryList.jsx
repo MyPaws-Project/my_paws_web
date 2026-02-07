@@ -113,14 +113,6 @@ export default function MedicalHistoryList() {
                   <div className="mh-item-actions">
                     <button
                       className="btn-secondary"
-                      onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history/${x.id}`)}
-                      disabled={saving}
-                    >
-                      {t('common.view')}
-                    </button>
-
-                    <button
-                      className="btn-secondary"
                       onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history/${x.id}/edit`)}
                       disabled={saving}
                     >
