@@ -84,7 +84,6 @@ export default function AppointmentForm() {
   }, []);
 
   useEffect(() => {
-    // si cambiás idioma, actualizamos el valor por defecto SOLO si el usuario no tocó el campo
     setReason((prev) => (prev?.trim() ? prev : t("appointments.form.defaults.reason")));
   }, [t]);
 
@@ -140,11 +139,13 @@ export default function AppointmentForm() {
 
   return (
     <div className="af-page">
-      <button className="af-back" onClick={() => navigate(-1)} disabled={saving}>
-        ← {t("appointments.form.actions.back")}
-      </button>
+      <div className="af-header">
+        <button className="af-back" onClick={() => navigate(-1)} disabled={saving}>
+          ← {t("appointments.form.actions.back")}
+        </button>
 
-      <h1 className="af-title">{t("appointments.form.titleNew")}</h1>
+        <h1 className="af-title">{t("appointments.form.titleNew")}</h1>
+      </div>
 
       <div className="af-meta card">
         <div className="af-meta-day" style={{ textTransform: "capitalize" }}>

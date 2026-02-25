@@ -5,6 +5,46 @@
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+
+  --green-dark: #5c9e3f;
+  --green: #7ed957;
+  --bg: #f2f2f2;
+  --text: #1f2a1f;
+  --muted: rgba(0, 0, 0, 0.6);
+  --card: #ffffff;
+  --border: rgba(0, 0, 0, 0.12);
+  --shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font-family: inherit;
+}
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
 }
 
 html, body, #root {

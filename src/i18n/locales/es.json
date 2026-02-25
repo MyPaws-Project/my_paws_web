@@ -13,7 +13,8 @@
     "email": "Email",
     "phone": "Teléfono",
     "address": "Dirección",
-    "notes": "Notas"
+    "notes": "Notas",
+    "close": "Cerrar"
   },
   "layout": {
     "myClinicFallback": "Mi clínica",
@@ -151,6 +152,14 @@
         "appts": "turno(s)",
         "text": "{{count}} {{apptWord}} · Horario 08:00–20:00 · Hacé click en un turno para ver detalles"
       },
+      "buttons": {
+        "today": "Hoy",
+        "month": "Mes",
+        "week": "Semana",
+        "day": "Día"
+      },
+      "allDay": "Todo el día",
+      "more": "+{{count}} más",
       "errors": {
         "load": "No se pudo cargar el calendario.",
         "indexBuilding": "El índice del calendario se está creando en Firebase. Esperá un momento y tocá Reintentar.",
@@ -288,7 +297,7 @@
         "currentMedication": "Medicación actual (coma)"
       },
       "placeholders": {
-        "species": "Ej: dog / cat",
+        "species": "Ej: perro",
         "weightKg": "Ej: 3.9",
         "allergies": "Ej: pollo, polvo",
         "chronicIllnesses": "Ej: dermatitis, asma",
@@ -315,7 +324,8 @@
         "notFound": "Mascota no encontrada",
         "load": "No se pudo cargar la mascota",
         "disable": "No se pudo desactivar la mascota",
-        "reactivate": "No se pudo reactivar la mascota"
+        "reactivate": "No se pudo reactivar la mascota",
+        "uploadPhoto": "No se pudo subir la foto."
       },
       "confirm": {
         "disable": "¿Seguro que querés desactivar esta mascota? Podés reactivarla luego.",
@@ -351,6 +361,23 @@
         "sex": {
           "male": "Macho",
           "female": "Hembra"
+        }
+      },
+      "photos": {
+        "title": "Fotos",
+        "previewAlt": "Vista previa de la foto",
+        "thumbAlt": "Foto de la mascota",
+        "viewerAlt": "Foto de la mascota",
+        "albumTitle": "Álbum de {{name}}",
+        "actions": {
+          "openAlbumTitle": "Ver todas las fotos",
+          "openAlbum": "Ver álbum ({{count}})",
+          "open": "Abrir"
+        },
+        "status": {
+          "uploading": "Subiendo…",
+          "loading": "Cargando fotos…",
+          "empty": "Todavía no hay fotos."
         }
       }
     }
@@ -409,7 +436,9 @@
         "needAuth": "Usuario no autenticado",
         "dateRequired": "La fecha es obligatoria",
         "reasonRequired": "El motivo es obligatorio",
-        "save": "No se pudo guardar"
+        "save": "No se pudo guardar",
+        "update": "No se pudo guardar",
+        "create": "No se pudo guardar"
       }
     }
   },
@@ -428,10 +457,11 @@
     "labels": {
       "clinicName": "Nombre de la veterinaria",
       "clinicAddress": "Dirección",
-      "email": "Email"
+      "email": "Email",
+      "password": "Contraseña"
     },
-    "hints": {
-      "emailAuth": "Si querés cambiar el email de inicio de sesión, también hay que actualizarlo en Firebase Auth."
+    "messages": {
+      "verifyEmailSent": "Te enviamos un email de verificación a la nueva dirección. Verificalo para completar el cambio."
     },
     "errors": {
       "notAuth": "Usuario no autenticado",
@@ -439,7 +469,24 @@
       "save": "Error guardando cambios",
       "nameRequired": "El nombre de la veterinaria es obligatorio",
       "addressRequired": "La dirección de la veterinaria es obligatoria",
-      "emailRequired": "El email es obligatorio"
+      "emailRequired": "El email es obligatorio",
+      "verifyNewEmailRequired": "Tenés que verificar el nuevo email para completar el cambio.",
+      "emailAlreadyInUse": "Ese email ya está en uso.",
+      "invalidEmail": "Email inválido."
+    },
+    "reauth": {
+      "title": "Confirmá tu identidad",
+      "description": "Por seguridad, ingresá tu contraseña para continuar.",
+      "passwordPlaceholder": "••••••••",
+      "actions": {
+        "confirm": "Confirmar",
+        "confirming": "Confirmando…"
+      },
+      "errors": {
+        "wrongPassword": "Contraseña incorrecta.",
+        "requiresRecentLogin": "Iniciá sesión nuevamente e intentá otra vez.",
+        "generic": "No se pudo confirmar tu identidad. Intentá de nuevo."
+      }
     }
   }
 }

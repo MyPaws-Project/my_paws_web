@@ -1,12 +1,3 @@
-:root {
-  --green-dark: #5c9e3f;
-  --text: #1f2a1f;
-  --muted: rgba(0, 0, 0, 0.6);
-  --card: #ffffff;
-  --border: rgba(0, 0, 0, 0.12);
-  --shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
-}
-
 .af-page {
   min-height: 0;
   padding: 0;
@@ -16,38 +7,61 @@
   margin: 0 auto;
 }
 
+.af-page *,
+.af-page *::before,
+.af-page *::after {
+  box-sizing: border-box;
+}
+
+.af-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
 .af-back {
-  border: none;
-  background: transparent;
-  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  padding: 10px 12px;
+  border-radius: 12px;
   cursor: pointer;
-  color: var(--muted);
+  color: var(--text);
   font-weight: 900;
 }
 
 .af-back:hover {
-  color: var(--text);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.af-back:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .af-title {
-  margin: 12px 0 0 0;
+  margin: 0;
   font-size: 1.65rem;
-  font-weight: 900;
+  font-weight: 950;
+  text-align: center;
 }
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   box-shadow: var(--shadow);
-  padding: 18px;
+  padding: 16px;
 }
 
 .af-meta {
   margin-top: 12px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .af-meta-day {
@@ -57,12 +71,13 @@
 }
 
 .af-meta-time {
-  font-size: 1.25rem;
-  font-weight: 900;
+  font-size: 1.15rem;
+  font-weight: 950;
 }
 
 .af-form {
   margin-top: 12px;
+  overflow: hidden;
 }
 
 .af-grid {
@@ -74,10 +89,12 @@
 .af-field {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .af-span-2 {
   grid-column: span 2;
+  min-width: 0;
 }
 
 .af-label {
@@ -86,40 +103,44 @@
   color: var(--muted);
 }
 
-.af-input {
+.af-input,
+.af-textarea {
+  width: 100%;
+  max-width: 100%;
   padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
   font-size: 0.95rem;
   font-weight: 650;
   outline: none;
-  background: white;
+  background: #fff;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.af-input:focus {
-  border-color: rgba(92, 158, 63, 0.6);
-  box-shadow: 0 0 0 3px rgba(92, 158, 63, 0.15);
+.af-input:focus,
+.af-textarea:focus {
+  border-color: rgba(92, 158, 63, 0.55);
+  box-shadow: 0 0 0 4px rgba(92, 158, 63, 0.14);
+}
+
+.af-input:disabled,
+.af-textarea:disabled {
+  background: rgba(0, 0, 0, 0.03);
+  cursor: not-allowed;
 }
 
 .af-textarea {
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  font-size: 0.95rem;
-  font-weight: 650;
-  outline: none;
-  background: white;
   resize: vertical;
-}
-
-.af-textarea:focus {
-  border-color: rgba(92, 158, 63, 0.6);
-  box-shadow: 0 0 0 3px rgba(92, 158, 63, 0.15);
+  min-height: 120px;
 }
 
 .af-error {
   margin: 12px 0 0 0;
-  color: crimson;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff5f5;
+  border: 1px solid #ffd6d6;
+  color: #b00020;
   font-weight: 900;
 }
 
@@ -135,24 +156,29 @@
 .btn-secondary {
   padding: 10px 14px;
   border-radius: 12px;
-  font-weight: 900;
+  font-weight: 950;
   cursor: pointer;
-  border: none;
 }
 
 .btn-primary {
   background: var(--green-dark);
-  color: white;
+  color: #fff;
+  border: 1px solid transparent;
 }
 
 .btn-primary:hover {
   opacity: 0.95;
 }
 
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-secondary {
-  background: white;
+  background: #fff;
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .btn-secondary:hover {
@@ -160,11 +186,37 @@
 }
 
 @media (max-width: 820px) {
+  .af-header {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .af-title {
+    text-align: left;
+  }
+
   .af-grid {
     grid-template-columns: 1fr;
   }
 
   .af-span-2 {
     grid-column: auto;
+  }
+
+  .af-actions {
+    justify-content: stretch;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+
+  .af-meta {
+    gap: 6px;
+  }
+
+  .af-meta-time {
+    font-size: 1.05rem;
   }
 }

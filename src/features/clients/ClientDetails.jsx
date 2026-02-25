@@ -82,7 +82,13 @@ export default function ClientDetails() {
     };
   }, [id, t]);
 
-  if (loading) return <div className="cd-status">{t("common.loading")}</div>;
+  if (loading) {
+    return (
+      <div className="cd-page">
+        <div className="cd-status">{t("common.loading")}</div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -149,18 +155,12 @@ export default function ClientDetails() {
         <div className="card-header">
           <h3 className="card-title">{t("clients.details.sections.pets")}</h3>
 
-          <button
-            className="btn-primary"
-            onClick={() => navigate(`/clients/${id}/pets/new`)}
-          >
+          <button className="btn-primary" onClick={() => navigate(`/clients/${id}/pets/new`)}>
             {t("clients.details.actions.newPet")}
           </button>
         </div>
 
-        {petsLoading ? (
-          <div className="cd-muted">{t("clients.details.pets.loading")}</div>
-        ) : null}
-
+        {petsLoading ? <div className="cd-muted">{t("clients.details.pets.loading")}</div> : null}
         {petsError ? <p className="cd-error">{petsError}</p> : null}
 
         {!petsLoading && !petsError && pets.length === 0 ? (

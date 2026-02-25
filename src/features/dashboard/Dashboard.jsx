@@ -22,8 +22,6 @@ export default function Dashboard() {
 
   const [clients, setClients] = useState([]);
   const [activeCount, setActiveCount] = useState("—");
-
-  // Guardamos una KEY (no el texto traducido)
   const [errorKey, setErrorKey] = useState("");
 
   useEffect(() => {
@@ -53,7 +51,7 @@ export default function Dashboard() {
     return () => {
       alive = false;
     };
-  }, []); // 👈 NO depende de t, así no recarga data al cambiar idioma
+  }, []);
 
   const recentClients = useMemo(() => {
     const sorted = [...clients].sort((a, b) => {
@@ -72,20 +70,22 @@ export default function Dashboard() {
     client?.email || client?.phone || t("dashboard.recentClients.noContact");
 
   return (
-    <div className="dashboard-page">
-      <header className="dashboard-header">
-        <div>
-          <h1 className="dashboard-title">{t("dashboard.title")}</h1>
-          <p className="dashboard-subtitle">
+    <div className="dash-page">
+      <header className="dash-topbar">
+        <div className="dash-topspacer" />
+        <div className="dash-head">
+          <h1 className="dash-title">{t("dashboard.title")}</h1>
+          <p className="dash-subtitle">
             {t("dashboard.activeClients")} <b>{activeCount}</b>
           </p>
         </div>
+        <div className="dash-topspacer" />
       </header>
 
-      <div className="dashboard-grid">
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">{t("dashboard.recentClients.title")}</h3>
+      <div className="dash-grid">
+        <section className="card dash-card">
+          <div className="dash-cardhead">
+            <h3 className="dash-cardtitle">{t("dashboard.recentClients.title")}</h3>
             <button className="btn-primary" onClick={() => navigate("/clients")}>
               {t("dashboard.recentClients.actions.viewAll")}
             </button>
@@ -94,37 +94,44 @@ export default function Dashboard() {
           {errorKey ? <p className="dash-error">{t(errorKey)}</p> : null}
 
           {recentClients.length === 0 ? (
-            <p className="dashboard-subtitle">
-              {t("dashboard.recentClients.empty")}
-            </p>
+            <p className="dash-empty">{t("dashboard.recentClients.empty")}</p>
           ) : (
-            <div className="client-list">
+            <div className="dash-clientlist">
               {recentClients.map((c) => (
                 <button
                   key={c.id}
-                  className="client-item"
+                  className="dash-clientitem"
                   onClick={() => navigate(`/clients/${c.id}`)}
                 >
-                  <div className="client-name">
-                    {(c.fullName || t("common.unnamed"))} · {statusLabel(c)}
+                  <div className="dash-clientrow">
+                    <span className="dash-clientname">
+                      {c.fullName || t("common.unnamed")}
+                    </span>
+                    <span
+                      className={`dash-badge ${
+                        c.active === false ? "inactive" : "active"
+                      }`}
+                    >
+                      {statusLabel(c)}
+                    </span>
                   </div>
-                  <div className="client-meta">{contactLabel(c)}</div>
+                  <div className="dash-clientmeta">{contactLabel(c)}</div>
                 </button>
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">{t("dashboard.today.title")}</h3>
+        <section className="card dash-card">
+          <div className="dash-cardhead">
+            <h3 className="dash-cardtitle">{t("dashboard.today.title")}</h3>
             <button className="btn-primary" onClick={() => navigate("/calendar")}>
               {t("dashboard.today.actions.viewCalendar")}
             </button>
           </div>
 
           <AppointmentsList />
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+
 import { getPetById, disablePet, reactivatePet } from "../../services/pets/pets.service";
 import { uploadPetImage } from "../../services/cloudinary/cloudinary.service";
 import { addPetPhoto, listPetPhotos } from "../../services/pets/petPhotos.service";
+
 import "./petDetails.css";
 
 const formatList = (arr, fallback) => {
@@ -141,7 +143,7 @@ export default function PetDetails() {
       await loadPhotos();
     } catch (err) {
       console.error(err);
-      alert("Error subiendo la foto (mirá la consola)");
+      setErrorKey("pets.details.errors.uploadPhoto");
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -187,12 +189,16 @@ export default function PetDetails() {
 
   return (
     <div className="pd-page">
-      <button className="pd-back" onClick={() => navigate(`/clients/${clientId}`)} disabled={saving}>
-        ← {t("pets.details.actions.backToClient")}
-      </button>
+      <div className="pd-topbar">
+        <button
+          className="pd-back"
+          onClick={() => navigate(`/clients/${clientId}`)}
+          disabled={saving}
+        >
+          ← {t("pets.details.actions.backToClient")}
+        </button>
 
-      <header className="pd-header">
-        <div>
+        <div className="pd-head">
           <h1 className="pd-title">{pet?.name || t("common.unnamed")}</h1>
           {isInactive ? <p className="pd-badge">{t("pets.details.badges.inactive")}</p> : null}
         </div>
@@ -225,7 +231,7 @@ export default function PetDetails() {
             </button>
           )}
         </div>
-      </header>
+      </div>
 
       <section className="card pd-card">
         <div className="pd-grid">
@@ -284,15 +290,15 @@ export default function PetDetails() {
 
       <section className="card pd-card pd-photos">
         <div className="pd-photos-header">
-          <h2 className="pd-photos-title">Fotos</h2>
+          <h2 className="pd-photos-title">{t("pets.details.photos.title")}</h2>
 
           <button
             className="btn-secondary"
             onClick={handleOpenAlbum}
             disabled={saving || uploading}
-            title="Ver todas las fotos"
+            title={t("pets.details.photos.actions.openAlbumTitle")}
           >
-            Ver álbum ({photos.length})
+            {t("pets.details.photos.actions.openAlbum", { count: photos.length })}
           </button>
         </div>
 
@@ -305,12 +311,12 @@ export default function PetDetails() {
             disabled={uploading || saving}
           />
 
-          {uploading ? <span className="pd-uploading">Subiendo...</span> : null}
+          {uploading ? <span className="pd-uploading">{t("pets.details.photos.status.uploading")}</span> : null}
         </div>
 
         {photoUrl ? (
           <div className="pd-preview">
-            <img src={photoUrl} alt="Pet" />
+            <img src={photoUrl} alt={t("pets.details.photos.previewAlt")} />
           </div>
         ) : null}
       </section>
@@ -319,17 +325,19 @@ export default function PetDetails() {
         <div className="pd-album-overlay" onClick={handleCloseAlbum} role="dialog" aria-modal="true">
           <div className="pd-album" onClick={(e) => e.stopPropagation()}>
             <div className="pd-album-header">
-              <h3 className="pd-album-title">Álbum de {pet?.name || t("common.unnamed")}</h3>
+              <h3 className="pd-album-title">
+                {t("pets.details.photos.albumTitle", { name: pet?.name || t("common.unnamed") })}
+              </h3>
 
               <button className="btn-secondary" onClick={handleCloseAlbum}>
-                Cerrar
+                {t("common.close")}
               </button>
             </div>
 
             {loadingPhotos ? (
-              <p className="pd-album-status">Cargando fotos...</p>
+              <p className="pd-album-status">{t("pets.details.photos.status.loading")}</p>
             ) : photos.length === 0 ? (
-              <p className="pd-album-status">Todavía no hay fotos.</p>
+              <p className="pd-album-status">{t("pets.details.photos.status.empty")}</p>
             ) : (
               <div className="pd-album-grid">
                 {photos.map((p) => (
@@ -338,9 +346,9 @@ export default function PetDetails() {
                     type="button"
                     className="pd-album-thumb"
                     onClick={() => handleOpenViewer(p)}
-                    title="Abrir"
+                    title={t("pets.details.photos.actions.open")}
                   >
-                    <img src={p.url} alt="pet" />
+                    <img src={p.url} alt={t("pets.details.photos.thumbAlt")} />
                   </button>
                 ))}
               </div>
@@ -355,7 +363,7 @@ export default function PetDetails() {
             <button className="pd-viewer-close" type="button" onClick={handleCloseViewer}>
               ✕
             </button>
-            <img className="pd-viewer-img" src={selectedPhoto.url} alt="pet" />
+            <img className="pd-viewer-img" src={selectedPhoto.url} alt={t("pets.details.photos.viewerAlt")} />
           </div>
         </div>
       ) : null}

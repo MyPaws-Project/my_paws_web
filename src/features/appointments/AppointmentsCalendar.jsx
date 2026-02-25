@@ -90,6 +90,15 @@ export default function AppointmentsCalendar() {
   }, []);
 
   useEffect(() => {
+    if (!selectedAppt) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setSelectedAppt(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedAppt]);
+
+  useEffect(() => {
     let alive = true;
 
     async function load() {
@@ -104,9 +113,7 @@ export default function AppointmentsCalendar() {
       try {
         const appts = await listAppointmentsForVet(user.uid);
 
-        const uniqueClientIds = Array.from(
-          new Set(appts.map((a) => a.clientId).filter(Boolean))
-        );
+        const uniqueClientIds = Array.from(new Set(appts.map((a) => a.clientId).filter(Boolean)));
 
         const pairs = await Promise.all(
           uniqueClientIds.map(async (clientId) => {
@@ -128,9 +135,10 @@ export default function AppointmentsCalendar() {
             const end = toDateMaybe(a.endTime);
             if (!start) return null;
 
-            const clientName = a.clientId
-              ? clientMap[a.clientId] || t("appointments.calendar.clientFallback")
-              : t("appointments.calendar.clientFallback");
+            const clientName =
+              a.clientId && clientMap[a.clientId]
+                ? clientMap[a.clientId]
+                : t("appointments.calendar.clientFallback");
 
             const reason = a.reason || t("appointments.calendar.defaultReason");
             const status = normalizeStatus(a.status || "scheduled");
@@ -156,12 +164,12 @@ export default function AppointmentsCalendar() {
         if (!alive) return;
         setEvents(evs);
       } catch (e) {
-        console.error("ERROR loading calendar:", e);
         const msg = String(e?.message || "");
+        const lower = msg.toLowerCase();
 
-        if (msg.toLowerCase().includes("building")) {
+        if (lower.includes("building")) {
           setError(t("appointments.calendar.errors.indexBuilding"));
-        } else if (msg.toLowerCase().includes("index")) {
+        } else if (lower.includes("index")) {
           setError(t("appointments.calendar.errors.missingIndex"));
         } else {
           setError(msg || t("appointments.calendar.errors.load"));
@@ -206,17 +214,17 @@ export default function AppointmentsCalendar() {
 
   return (
     <div className="ac-page">
-      <div className="ac-header">
-        <div className="ac-headings">
+      <div className="ac-topbar">
+        <button className="ac-back" onClick={() => navigate("/dashboard")}>
+          ← {t("appointments.calendar.actions.back")}
+        </button>
+
+        <div className="ac-topcenter">
           <h1 className="ac-title">{t("appointments.calendar.title")}</h1>
           <p className="ac-subtitle">{subtitle}</p>
         </div>
 
-        <div className="ac-actions">
-          <button className="btn-secondary" onClick={() => navigate("/dashboard")}>
-            {t("appointments.calendar.actions.back")}
-          </button>
-
+        <div className="ac-topactions">
           <button className="btn-secondary" onClick={() => setReloadKey((k) => k + 1)}>
             {t("appointments.calendar.actions.retry")}
           </button>
@@ -229,11 +237,20 @@ export default function AppointmentsCalendar() {
         <FullCalendar
           plugins={[timeGridPlugin, dayGridPlugin, interactionPlugin]}
           initialView="timeGridWeek"
+          locale={i18n.language}
           headerToolbar={{
             left: "prev,next today",
             center: "title",
             right: "timeGridDay,timeGridWeek,dayGridMonth",
           }}
+          buttonText={{
+            today: t("appointments.calendar.buttons.today"),
+            month: t("appointments.calendar.buttons.month"),
+            week: t("appointments.calendar.buttons.week"),
+            day: t("appointments.calendar.buttons.day"),
+          }}
+          allDayText={t("appointments.calendar.allDay")}
+          moreLinkText={(n) => t("appointments.calendar.more", { count: n })}
           nowIndicator={true}
           height="75vh"
           expandRows={true}
@@ -263,9 +280,7 @@ export default function AppointmentsCalendar() {
               <div className="ac-daycell">
                 <div className="ac-daynum">{n}</div>
                 {count > 0 ? (
-                  <div className="ac-daybadge">
-                    {t("appointments.calendar.dayBadge", { count })}
-                  </div>
+                  <div className="ac-daybadge">{t("appointments.calendar.dayBadge", { count })}</div>
                 ) : null}
               </div>
             );
@@ -327,17 +342,8 @@ export default function AppointmentsCalendar() {
       <p className="ac-help">{t("appointments.calendar.help")}</p>
 
       {selectedAppt ? (
-        <div
-          className="ac-modal-backdrop"
-          onClick={() => setSelectedAppt(null)}
-          role="presentation"
-        >
-          <div
-            className="ac-modal"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-          >
+        <div className="ac-modal-backdrop" onClick={() => setSelectedAppt(null)} role="presentation">
+          <div className="ac-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="ac-modal-head">
               <div>
                 <div className="ac-modal-title">{selectedAppt.clientName}</div>
@@ -374,18 +380,12 @@ export default function AppointmentsCalendar() {
 
               <div className="ac-modal-actions">
                 {selectedAppt.clientId ? (
-                  <button
-                    className="btn-secondary"
-                    onClick={() => navigate(`/clients/${selectedAppt.clientId}`)}
-                  >
+                  <button className="btn-secondary" onClick={() => navigate(`/clients/${selectedAppt.clientId}`)}>
                     {t("appointments.calendar.modal.viewClient")}
                   </button>
                 ) : null}
 
-                <button
-                  className="btn-primary"
-                  onClick={() => navigate(`/appointments/${selectedAppt.id}/edit`)}
-                >
+                <button className="btn-primary" onClick={() => navigate(`/appointments/${selectedAppt.id}/edit`)}>
                   {t("appointments.calendar.modal.editAppointment")}
                 </button>
               </div>

@@ -62,7 +62,7 @@ export default function PetForm() {
           currentMedication: Array.isArray(data.currentMedication) ? data.currentMedication.join(", ") : "",
           notes: data.notes ?? ""
         });
-      } catch (e) {
+      } catch {
         if (!alive) return;
         setErrorKey("pets.form.errors.load");
       } finally {
@@ -75,7 +75,12 @@ export default function PetForm() {
     return () => {
       alive = false;
     };
-  }, [isEdit, clientId, petId, t]);
+  }, [isEdit, clientId, petId]);
+
+  const goBack = () => {
+    if (isEdit) navigate(`/clients/${clientId}/pets/${petId}`);
+    else navigate(`/clients/${clientId}`);
+  };
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -91,8 +96,7 @@ export default function PetForm() {
       return;
     }
 
-    const weightNum =
-      form.weightKg === "" || form.weightKg == null ? null : Number(form.weightKg);
+    const weightNum = form.weightKg === "" || form.weightKg == null ? null : Number(form.weightKg);
 
     const payload = {
       name: nameTrimmed,
@@ -118,16 +122,11 @@ export default function PetForm() {
         const newId = await createPet(clientId, payload);
         navigate(`/clients/${clientId}/pets/${newId}`);
       }
-    } catch (err) {
+    } catch {
       setErrorKey(isEdit ? "pets.form.errors.update" : "pets.form.errors.create");
     } finally {
       setSaving(false);
     }
-  };
-
-  const goBack = () => {
-    if (isEdit) navigate(`/clients/${clientId}/pets/${petId}`);
-    else navigate(`/clients/${clientId}`);
   };
 
   if (loading) return <div className="pf-status">{t("common.loading")}</div>;
@@ -147,13 +146,15 @@ export default function PetForm() {
 
   return (
     <div className="pf-page">
-      <button className="pf-back" onClick={goBack} disabled={saving}>
-        ← {t("common.back")}
-      </button>
+      <div className="pf-header">
+        <button className="pf-back" onClick={goBack} disabled={saving}>
+          ← {t("common.back")}
+        </button>
 
-      <h1 className="pf-title">{isEdit ? t("pets.form.titleEdit") : t("pets.form.titleNew")}</h1>
+        <h1 className="pf-title">{isEdit ? t("pets.form.titleEdit") : t("pets.form.titleNew")}</h1>
 
-      {errorKey ? <p className="pf-error">{t(errorKey)}</p> : null}
+        <div className="pf-topspacer" />
+      </div>
 
       <form className="pf-form card" onSubmit={onSubmit}>
         <div className="pf-grid">
@@ -263,14 +264,24 @@ export default function PetForm() {
           </div>
         </div>
 
-        <div className="pf-actions">
-          <button className="btn-primary" type="submit" disabled={saving}>
-            {saving ? t("pets.form.actions.saving") : isEdit ? t("pets.form.actions.saveChanges") : t("pets.form.actions.create")}
-          </button>
+        {errorKey ? <p className="pf-error">{t(errorKey)}</p> : null}
 
-          <button className="btn-secondary" type="button" onClick={goBack} disabled={saving}>
-            {t("common.cancel")}
-          </button>
+        <div className="pf-actions">
+          <div className="pf-actions-left">
+            <button className="btn-secondary" type="button" onClick={goBack} disabled={saving}>
+              {t("common.cancel")}
+            </button>
+          </div>
+
+          <div className="pf-actions-right">
+            <button className="btn-primary" type="submit" disabled={saving}>
+              {saving
+                ? t("pets.form.actions.saving")
+                : isEdit
+                  ? t("pets.form.actions.saveChanges")
+                  : t("pets.form.actions.create")}
+            </button>
+          </div>
         </div>
       </form>
     </div>

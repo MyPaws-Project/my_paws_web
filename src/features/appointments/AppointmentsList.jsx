@@ -46,8 +46,10 @@ export default function AppointmentsList() {
     return date.toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" });
   };
 
+  const statusKey = (status) => (status || "scheduled").toString().toLowerCase();
+
   const statusLabel = (status) => {
-    const key = (status || "scheduled").toString().toLowerCase();
+    const key = statusKey(status);
     return t(`appointments.status.${key}`, { defaultValue: key });
   };
 
@@ -113,63 +115,87 @@ export default function AppointmentsList() {
   }
 
   const todayLabel = useMemo(
-    () => new Date().toLocaleDateString(i18n.language),
+    () =>
+      new Date().toLocaleDateString(i18n.language, {
+        weekday: "long",
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      }),
     [i18n.language]
   );
 
   if (loading) return <p className="al-status">{t("appointments.list.loading")}</p>;
 
   return (
-    <div className="al-wrap">
+    <div className="al-page">
       <div className="al-head">
-        <h3 className="al-title">{t("appointments.list.titleToday")}</h3>
-        <span className="al-date">{todayLabel}</span>
+        <div className="al-headings">
+          <h1 className="al-title">{t("appointments.list.titleToday")}</h1>
+          <div className="al-date" style={{ textTransform: "capitalize" }}>
+            {todayLabel}
+          </div>
+        </div>
+
+        <div className="al-meta">
+          <div className="al-count">
+            {t("appointments.list.labels.time")}:{" "}
+            <span className="al-count-strong">{items.length}</span>
+          </div>
+        </div>
       </div>
 
-      {error ? <p className="al-error">{error}</p> : null}
+      {error ? <div className="al-error">{error}</div> : null}
 
       {items.length === 0 ? (
-        <p className="al-empty">{t("appointments.list.emptyToday")}</p>
+        <div className="al-empty card">{t("appointments.list.emptyToday")}</div>
       ) : (
         <div className="al-list">
           {items.map((a) => {
             const start = a.startTime?.toDate ? a.startTime.toDate() : null;
             const end = a.endTime?.toDate ? a.endTime.toDate() : null;
 
+            const clientName = a.clientId
+              ? clientMap[a.clientId] || t("appointments.list.clientLoading")
+              : t("appointments.list.na");
+
+            const stKey = statusKey(a.status);
+
             return (
-              <div key={a.id} className="al-item card">
-                <div className="al-row">
-                  <div className="al-main">
-                    <div className="al-line">
-                      <b>{t("appointments.list.labels.time")}:</b> {formatTime(start)} {" - "}{" "}
-                      {formatTime(end)}
-                    </div>
-
-                    <div className="al-line">
-                      <b>{t("appointments.list.labels.client")}:</b>{" "}
-                      {a.clientId
-                        ? clientMap[a.clientId] || t("appointments.list.clientLoading")
-                        : t("appointments.list.na")}
-                    </div>
-
-                    <div className="al-line">
-                      <b>{t("appointments.list.labels.reason")}:</b> {a.reason || t("appointments.list.na")}{" "}
-                      {" · "}
-                      <b>{t("appointments.list.labels.status")}:</b> {statusLabel(a.status)}
-                    </div>
-
-                    {a.notes ? (
-                      <div className="al-line">
-                        <b>{t("appointments.list.labels.notes")}:</b> {a.notes}
-                      </div>
-                    ) : null}
+              <div key={a.id} className="card al-item">
+                <div className="al-item-top">
+                  <div className="al-time">
+                    {formatTime(start)} <span className="al-dash">–</span> {formatTime(end)}
                   </div>
 
-                  <div className="al-actions">
-                    <button className="btn-secondary" onClick={() => handleDelete(a.id)}>
-                      {t("appointments.actions.delete")}
-                    </button>
+                  <span className={`al-status-pill al-status-${stKey}`}>
+                    {statusLabel(a.status)}
+                  </span>
+                </div>
+
+                <div className="al-item-body">
+                  <div className="al-row">
+                    <div className="al-k">{t("appointments.list.labels.client")}</div>
+                    <div className="al-v">{clientName}</div>
                   </div>
+
+                  <div className="al-row">
+                    <div className="al-k">{t("appointments.list.labels.reason")}</div>
+                    <div className="al-v">{a.reason || t("appointments.list.na")}</div>
+                  </div>
+
+                  {a.notes ? (
+                    <div className="al-row">
+                      <div className="al-k">{t("appointments.list.labels.notes")}</div>
+                      <div className="al-v">{a.notes}</div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="al-actions">
+                  <button className="btn-danger" onClick={() => handleDelete(a.id)}>
+                    {t("appointments.actions.delete")}
+                  </button>
                 </div>
               </div>
             );
