@@ -62,6 +62,7 @@
     },
     "form": {
       "newTitle": "Nuevo cliente",
+      "editTitle": "Editar cliente",
       "editing": "Editando:",
       "fields": {
         "fullName": "Nombre completo",
@@ -473,6 +474,22 @@
       "verifyNewEmailRequired": "Tenés que verificar el nuevo email para completar el cambio.",
       "emailAlreadyInUse": "Ese email ya está en uso.",
       "invalidEmail": "Email inválido."
+    },
+    "logo": {
+      "alt": "Logo de la clínica",
+      "actions": {
+        "change": "Cambiar logo",
+        "tapToChange": "Tocá para cambiar"
+      },
+      "status": {
+        "uploading": "Subiendo..."
+      },
+      "messages": {
+        "updated": "Logo actualizado."
+      },
+      "errors": {
+        "upload": "No se pudo subir el logo."
+      }
     },
     "reauth": {
       "title": "Confirmá tu identidad",

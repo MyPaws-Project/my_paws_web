@@ -13,6 +13,16 @@ import { doc, getDoc } from 'firebase/firestore';
 export default function Layout() {
   const { t, i18n } = useTranslation();
   const [clinicName, setClinicName] = useState(t('layout.myClinicFallback'));
+  const [clinicLogoURL, setClinicLogoURL] = useState("");
+
+
+  const getInitials = (name) => {
+    if (!name) return "";
+    const words = name.trim().split(" ").filter(Boolean);
+
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return (words[0][0] + (words[1]?.[0] || "")).toUpperCase();
+  };
 
   useEffect(() => {
     let alive = true;
@@ -22,16 +32,23 @@ export default function Layout() {
         const user = auth.currentUser;
         if (!user) return;
 
-        const userRef = doc(db, 'users', user.uid);
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) return;
+        const userRef = doc(db, "users", user.uid);
+        const publicRef = doc(db, "publicUsers", user.uid);
 
-        const name = snap.data()?.clinicName;
+        const [snap, pubSnap] = await Promise.all([
+          getDoc(userRef),
+          getDoc(publicRef),
+        ]);
+
         if (!alive) return;
 
-        setClinicName(name || t('layout.myClinicFallback'));
+        const name = snap.exists() ? snap.data()?.clinicName || "" : "";
+        const logo = pubSnap.exists() ? pubSnap.data()?.logoURL || "" : "";
+
+        setClinicName(name || t("layout.myClinicFallback"));
+        setClinicLogoURL(logo);
       } catch (e) {
-        console.error('Error loading clinicName:', e);
+        console.error("Error loading clinic data:", e);
       }
     };
 
@@ -46,7 +63,17 @@ export default function Layout() {
       <aside className="sidebar">
         <div className="sidebar-card">
           <div className="sidebar-brand">
-            <div className="brand-mark">MP</div>
+            <div className="brand-mark">
+              {clinicLogoURL ? (
+                <img
+                  className="brand-logo"
+                  src={clinicLogoURL}
+                  alt={t("clinicProfile.logo.alt")}
+                />
+              ) : (
+                <span className="brand-initials">{getInitials(clinicName)}</span>
+              )}
+            </div>
             <div className="brand-text">
               <div className="brand-title">{clinicName}</div>
               <div className="brand-subtitle">{t('layout.panel')}</div>

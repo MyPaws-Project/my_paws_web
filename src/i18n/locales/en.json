@@ -62,6 +62,7 @@
     },
     "form": {
       "newTitle": "New client",
+      "editTitle": "Edit client",
       "editing": "Editing:",
       "fields": {
         "fullName": "Full name",
@@ -473,6 +474,22 @@
       "verifyNewEmailRequired": "Please verify the new email address to complete the change.",
       "emailAlreadyInUse": "This email is already in use.",
       "invalidEmail": "Invalid email."
+    },
+    "logo": {
+      "alt": "Clinic logo",
+      "actions": {
+        "change": "Change logo",
+        "tapToChange": "Click to change"
+      },
+      "status": {
+        "uploading": "Uploading..."
+      },
+      "messages": {
+        "updated": "Logo updated."
+      },
+      "errors": {
+        "upload": "Couldn't upload the logo."
+      }
     },
     "reauth": {
       "title": "Confirm your identity",

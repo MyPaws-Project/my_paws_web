@@ -238,3 +238,76 @@
     width: 100%;
   }
 }
+
+/* ===== Clinic logo (clickable) ===== */
+.cp-logoRow {
+  margin-bottom: 12px;
+}
+
+.cp-logoBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease,
+    transform 0.06s ease;
+}
+
+.cp-logoBtn:hover {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.28);
+}
+
+.cp-logoBtn:active {
+  transform: translateY(1px);
+}
+
+.cp-logoBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cp-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  flex: 0 0 auto;
+}
+
+.cp-logoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cp-logoFallback {
+  font-weight: 950;
+  font-size: 28px;
+  color: var(--muted);
+}
+
+.cp-logoHint {
+  display: grid;
+  gap: 4px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.cp-logoHint small {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--muted);
+}

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { auth, db } from "../../services/firebase/firebase";
+import { uploadAndSaveClinicLogo } from "../../services/clinic/clinicPhotos.service";
 import {
   updateClinicProfile,
   reauthenticateUser,
@@ -21,6 +22,9 @@ export default function ClinicProfile() {
   const [originalClinicName, setOriginalClinicName] = useState("");
   const [originalClinicAddress, setOriginalClinicAddress] = useState("");
   const [originalEmail, setOriginalEmail] = useState("");
+  const [logoURL, setLogoURL] = useState("");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const fileRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [errorKey, setErrorKey] = useState("");
@@ -72,9 +76,13 @@ export default function ClinicProfile() {
         }
 
         const snap = await getDoc(doc(db, "users", u.uid));
+        const pubSnap = await getDoc(doc(db, "publicUsers", u.uid));
         const authEmail = u.email || "";
 
         if (!alive) return;
+
+        const publicLogo = pubSnap.exists() ? pubSnap.data()?.logoURL || "" : "";
+        setLogoURL(publicLogo);
 
         if (snap.exists()) {
           const data = snap.data();
@@ -130,10 +138,8 @@ export default function ClinicProfile() {
       email: email.trim(),
     };
 
-    if (!payload.clinicName)
-      return setErrorKey("clinicProfile.errors.nameRequired");
-    if (!payload.clinicAddress)
-      return setErrorKey("clinicProfile.errors.addressRequired");
+    if (!payload.clinicName) return setErrorKey("clinicProfile.errors.nameRequired");
+    if (!payload.clinicAddress) return setErrorKey("clinicProfile.errors.addressRequired");
     if (!payload.email) return setErrorKey("clinicProfile.errors.emailRequired");
 
     try {
@@ -154,7 +160,6 @@ export default function ClinicProfile() {
       }
 
       const finalEmail = auth.currentUser?.email || payload.email;
-
       setOriginalEmail(finalEmail);
       setEmail(finalEmail);
 
@@ -248,6 +253,38 @@ export default function ClinicProfile() {
     } finally {
       setSaving(false);
       setReauthLoading(false);
+    }
+  };
+
+  const handlePickLogo = () => {
+    if (logoUploading || saving || reauthLoading) return;
+    fileRef.current?.click();
+  };
+
+  const handleLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setErrorKey("");
+      setMessageKey("");
+      setLogoUploading(true);
+
+      const u = auth.currentUser;
+      if (!u) {
+        setErrorKey("clinicProfile.errors.notAuth");
+        return;
+      }
+
+      const res = await uploadAndSaveClinicLogo(file, u.uid);
+      setLogoURL(res.url);
+      setMessageKey("clinicProfile.logo.messages.updated");
+    } catch (err) {
+      console.error(err);
+      setErrorKey("clinicProfile.logo.errors.upload");
+    } finally {
+      setLogoUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -352,6 +389,44 @@ export default function ClinicProfile() {
       ) : null}
 
       <div className="card cp-card">
+        <div className="cp-logoRow">
+          <button
+            type="button"
+            className="cp-logoBtn"
+            onClick={handlePickLogo}
+            disabled={logoUploading || saving || reauthLoading}
+            title={t("clinicProfile.logo.actions.change")}
+          >
+            <div className="cp-logo">
+              {logoURL ? (
+                <img
+                  className="cp-logoImg"
+                  src={logoURL}
+                  alt={t("clinicProfile.logo.alt")}
+                />
+              ) : (
+                <div className="cp-logoFallback">
+                  {(clinicName || "C").trim().slice(0, 1).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            <div className="cp-logoHint">
+              {logoUploading
+                ? t("clinicProfile.logo.status.uploading")
+                : t("clinicProfile.logo.actions.tapToChange")}
+            </div>
+          </button>
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleLogoChange}
+          />
+        </div>
+
         {!isEditing ? (
           <div className="cp-readonly">
             <div className="cp-row">
@@ -387,7 +462,7 @@ export default function ClinicProfile() {
                   type="text"
                   value={clinicName}
                   onChange={(e) => setClinicName(e.target.value)}
-                  disabled={saving || reauthLoading}
+                  disabled={saving || reauthLoading || logoUploading}
                   autoComplete="organization"
                 />
               </label>
