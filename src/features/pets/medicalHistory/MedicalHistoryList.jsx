@@ -59,8 +59,8 @@ export default function MedicalHistoryList() {
   const sortedItems = useMemo(() => {
     const copy = [...items];
     copy.sort((a, b) => {
-      const aTime = toMillis(a.updatedAt) || toMillis(a.createdAt) || toMillis(a.date);
-      const bTime = toMillis(b.updatedAt) || toMillis(b.createdAt) || toMillis(b.date);
+      const aTime = toMillis(a.updatedAt) || toMillis(a.createdAt) || toMillis(a.time_date);
+      const bTime = toMillis(b.updatedAt) || toMillis(b.createdAt) || toMillis(b.time_date);
       return bTime - aTime;
     });
     return copy;
@@ -121,9 +121,6 @@ export default function MedicalHistoryList() {
 
         <div className="mh-center">
           <h1 className="mh-title">{t("medicalHistory.list.title")}</h1>
-          <p className="mh-subtitle">
-            {sortedItems.length} {sortedItems.length === 1 ? "registro" : "registros"}
-          </p>
         </div>
 
         <div className="mh-actions">
@@ -142,7 +139,6 @@ export default function MedicalHistoryList() {
       ) : (
         <div className="mh-list">
           {sortedItems.map((x) => {
-            const photoCount = Array.isArray(x.photos) ? x.photos.length : 0;
 
             return (
               <div key={x.id} className="card mh-item">
@@ -156,14 +152,8 @@ export default function MedicalHistoryList() {
                   >
                     <div className="mh-topline">
                       <div className="mh-date">
-                        {x.date || t("medicalHistory.list.values.noDate")}
+                        {x.time_date || t("medicalHistory.list.values.noDate")}
                       </div>
-
-                      {photoCount > 0 ? (
-                        <span className="mh-badge" title={t("medicalHistory.list.labels.photos")}>
-                          📷 {photoCount}
-                        </span>
-                      ) : null}
                     </div>
 
                     <div className="mh-reason">
@@ -193,15 +183,22 @@ export default function MedicalHistoryList() {
                 </div>
 
                 <div className="mh-details">
-                  {x.diagnosis ? (
-                    <p className="mh-line">
-                      <b>{t("medicalHistory.list.labels.diagnosis")}:</b> {x.diagnosis}
-                    </p>
-                  ) : null}
 
                   {x.treatment ? (
                     <p className="mh-line">
                       <b>{t("medicalHistory.list.labels.treatment")}:</b> {x.treatment}
+                    </p>
+                  ) : null}
+
+                  {x.attending_veterinarian ? (
+                    <p className="mh-line">
+                      <b>{t("medicalHistory.list.labels.attendingVeterinarian")}:</b> {x.attending_veterinarian}
+                    </p>
+                  ) : null}
+
+                  {x.type ? (
+                    <p className="mh-line">
+                      <b>{t("medicalHistory.list.labels.type")}:</b> {t(`medicalHistory.form.type.${x.type}`)}
                     </p>
                   ) : null}
 

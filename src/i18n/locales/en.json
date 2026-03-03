@@ -14,7 +14,8 @@
     "phone": "Phone",
     "address": "Address",
     "notes": "Notes",
-    "close": "Close"
+    "close": "Close",
+    "delete": "Delete"
   },
   "layout": {
     "myClinicFallback": "My clinic",
@@ -71,7 +72,7 @@
       },
       "placeholders": {
         "fullName": "e.g. John Smith",
-        "phone": "e.g. 099 123 456",
+        "phone": "e.g. +598 99 123 456",
         "email": "e.g. name@email.com"
       },
       "actions": {
@@ -221,7 +222,7 @@
       "cancelled": "Cancelled",
       "canceled": "Canceled",
       "no_show": "No-show",
-      "done": "Completed"
+      "done": "Done"
     }
   },
   "auth": {
@@ -290,19 +291,19 @@
         "name": "Name",
         "species": "Species",
         "breed": "Breed",
-        "sex": "Sex",
+        "gender": "Gender",
         "birthDate": "Birth date",
-        "weightKg": "Current weight (kg)",
+        "weight": "Weight",
         "allergies": "Allergies (comma separated)",
-        "chronicIllnesses": "Chronic illnesses (comma separated)",
-        "currentMedication": "Current medication (comma separated)"
+        "illnesses": "Illnesses (comma separated)",
+        "medication": "Medication (comma separated)"
       },
       "placeholders": {
         "species": "e.g. dog",
-        "weightKg": "e.g. 3.9",
+        "weight": "e.g. 3.9",
         "allergies": "e.g. chicken, dust",
-        "chronicIllnesses": "e.g. dermatitis, asthma",
-        "currentMedication": "e.g. prednisone, omeprazole"
+        "illnesses": "e.g. dermatitis, asthma",
+        "medication": "e.g. prednisone, omeprazole"
       },
       "actions": {
         "saving": "Saving…",
@@ -321,47 +322,60 @@
       "status": {
         "loading": "Loading…"
       },
+      "deleteModal": {
+        "title": "Delete pet",
+        "text": "Are you sure you want to delete {{name}}? This action cannot be undone.",
+        "deleting": "Deleting…"
+      },
       "errors": {
         "notFound": "Pet not found",
         "load": "Couldn't load the pet",
-        "disable": "Couldn't disable the pet",
-        "reactivate": "Couldn't reactivate the pet",
+        "delete": "Couldn't delete the pet.",
+        "updateVaccines": "Couldn't save vaccines.",
         "uploadPhoto": "Couldn't upload the photo."
       },
       "confirm": {
-        "disable": "Disable this pet? You can reactivate it later.",
-        "reactivate": "Reactivate this pet?"
+        "delete": "Delete this pet? This action cannot be undone."
       },
       "actions": {
         "backToClient": "Back to client",
         "medicalHistory": "Medical history",
         "edit": "Edit",
-        "disable": "Disable",
-        "reactivate": "Reactivate"
-      },
-      "tooltips": {
-        "historyNeedsActive": "Reactivate the pet to manage its history"
-      },
-      "badges": {
-        "inactive": "Inactive"
+        "delete": "Delete"
       },
       "labels": {
         "species": "Species",
         "breed": "Breed",
-        "sex": "Sex",
+        "gender": "Gender",
         "birthDate": "Birth date",
-        "currentWeight": "Current weight",
+        "weight": "Weight",
         "allergies": "Allergies",
-        "chronicIllnesses": "Chronic illnesses",
-        "currentMedication": "Current medication",
+        "illnesses": "Illnesses",
+        "medication": "Medication",
         "notes": "Notes"
       },
       "values": {
         "na": "—",
         "weightUnit": "kg",
-        "sex": {
+        "gender": {
           "male": "Male",
           "female": "Female"
+        }
+      },
+      "vaccines": {
+        "title": "Vaccines",
+        "empty": "No vaccines registered yet.",
+        "noDoses": "No doses yet.",
+        "actions": {
+          "show": "Show",
+          "hide": "Hide",
+          "addVaccine": "Add vaccine",
+          "addDose": "Add dose (today)"
+        },
+        "modal": {
+          "title": "Add vaccine",
+          "namePlaceholder": "Vaccine name",
+          "save": "Add"
         }
       },
       "photos": {
@@ -370,10 +384,16 @@
         "thumbAlt": "Pet photo",
         "viewerAlt": "Pet photo",
         "albumTitle": "Album of {{name}}",
+        "fields": {
+          "titlePlaceholder": "Title (optional)",
+          "descPlaceholder": "Description (optional)"
+        },
         "actions": {
-          "openAlbumTitle": "View all photos",
           "openAlbum": "View album ({{count}})",
-          "open": "Open"
+          "open": "Open",
+          "pick": "Select an image",
+          "save": "Save",
+          "saving": "Saving…"
         },
         "status": {
           "uploading": "Uploading…",
@@ -396,14 +416,14 @@
       },
       "empty": "There are no visits recorded yet.",
       "labels": {
-        "diagnosis": "Diagnosis",
+        "attendingVeterinarian": "Veterinarian",
+        "type": "Type",
         "treatment": "Treatment",
         "notes": "Notes"
       },
       "values": {
         "noDate": "No date",
-        "noReason": "No reason",
-        "photoCount": "{{count}}"
+        "noReason": "No reason"
       },
       "confirm": {
         "delete": "Delete this visit? This action cannot be undone."
@@ -422,19 +442,22 @@
         "saving": "Saving…",
         "cancel": "Cancel"
       },
+      "type": {
+        "consult": "Consultation",
+        "control": "Check-up",
+        "surgery": "Surgery"
+      },
       "fields": {
-        "date": "Date",
+        "timeDate": "Date",
+        "type": "Visit type",
+        "attendingVeterinarian": "Veterinarian",
         "reasonRequired": "Reason (required)",
-        "diagnosis": "Diagnosis",
-        "treatment": "Treatment / Instructions",
-        "notes": "Notes",
-        "photosOptional": "Photos (optional)",
-        "existingPhotos": "Existing photos"
+        "treatment": "Treatment",
+        "notes": "Notes"
       },
       "errors": {
         "notFound": "Visit not found.",
         "load": "Couldn't load the visit.",
-        "needAuth": "User not authenticated",
         "dateRequired": "Date is required",
         "reasonRequired": "Reason is required",
         "save": "Couldn't save",
@@ -479,7 +502,7 @@
       "alt": "Clinic logo",
       "actions": {
         "change": "Change logo",
-        "tapToChange": "Click to change"
+        "tapToChange": "Tap to change"
       },
       "status": {
         "uploading": "Uploading..."

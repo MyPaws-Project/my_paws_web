@@ -14,7 +14,8 @@
     "phone": "Teléfono",
     "address": "Dirección",
     "notes": "Notas",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "delete": "Eliminar"
   },
   "layout": {
     "myClinicFallback": "Mi clínica",
@@ -71,7 +72,7 @@
       },
       "placeholders": {
         "fullName": "Ej: Juan Pérez",
-        "phone": "Ej: 099 123 456",
+        "phone": "Ej: +598 99 123 456",
         "email": "Ej: nombre@email.com"
       },
       "actions": {
@@ -143,7 +144,7 @@
       "defaultReason": "Consulta",
       "clientFallback": "Cliente",
       "clientUnnamed": "(Cliente)",
-      "help": "Haz click sobre una hora libre para crear un turno.",
+      "help": "Hacé click sobre una hora libre para crear un turno.",
       "dayBadge": "{{count}} turno(s)",
       "actions": {
         "back": "Volver",
@@ -290,19 +291,19 @@
         "name": "Nombre",
         "species": "Especie",
         "breed": "Raza",
-        "sex": "Sexo",
+        "gender": "Género",
         "birthDate": "Fecha de nacimiento",
-        "weightKg": "Peso actual (kg)",
+        "weight": "Peso",
         "allergies": "Alergias (separadas por coma)",
-        "chronicIllnesses": "Enfermedades crónicas (coma)",
-        "currentMedication": "Medicación actual (coma)"
+        "illnesses": "Enfermedades (coma)",
+        "medication": "Medicación (coma)"
       },
       "placeholders": {
         "species": "Ej: perro",
-        "weightKg": "Ej: 3.9",
+        "weight": "Ej: 3.9",
         "allergies": "Ej: pollo, polvo",
-        "chronicIllnesses": "Ej: dermatitis, asma",
-        "currentMedication": "Ej: prednisona, omeprazol"
+        "illnesses": "Ej: dermatitis, asma",
+        "medication": "Ej: prednisona, omeprazol"
       },
       "actions": {
         "saving": "Guardando…",
@@ -321,47 +322,60 @@
       "status": {
         "loading": "Cargando…"
       },
+      "deleteModal": {
+        "title": "Eliminar mascota",
+        "text": "¿Seguro que querés eliminar a {{name}}? Esta acción no se puede deshacer.",
+        "deleting": "Eliminando…"
+      },
       "errors": {
         "notFound": "Mascota no encontrada",
         "load": "No se pudo cargar la mascota",
-        "disable": "No se pudo desactivar la mascota",
-        "reactivate": "No se pudo reactivar la mascota",
+        "delete": "No se pudo eliminar la mascota.",
+        "updateVaccines": "No se pudieron guardar las vacunas.",
         "uploadPhoto": "No se pudo subir la foto."
       },
       "confirm": {
-        "disable": "¿Seguro que querés desactivar esta mascota? Podés reactivarla luego.",
-        "reactivate": "¿Reactivar esta mascota?"
+        "delete": "¿Seguro que querés eliminar esta mascota? Esta acción no se puede deshacer."
       },
       "actions": {
         "backToClient": "Volver al cliente",
         "medicalHistory": "Historial médico",
         "edit": "Editar",
-        "disable": "Desactivar",
-        "reactivate": "Reactivar"
-      },
-      "tooltips": {
-        "historyNeedsActive": "Reactivá la mascota para gestionar su historial"
-      },
-      "badges": {
-        "inactive": "Inactiva"
+        "delete": "Eliminar mascota"
       },
       "labels": {
         "species": "Especie",
         "breed": "Raza",
-        "sex": "Sexo",
+        "gender": "Género",
         "birthDate": "Fecha de nacimiento",
-        "currentWeight": "Peso actual",
+        "weight": "Peso",
         "allergies": "Alergias",
-        "chronicIllnesses": "Enfermedades crónicas",
-        "currentMedication": "Medicación actual",
+        "illnesses": "Enfermedades",
+        "medication": "Medicación",
         "notes": "Notas"
       },
       "values": {
         "na": "—",
         "weightUnit": "kg",
-        "sex": {
+        "gender": {
           "male": "Macho",
           "female": "Hembra"
+        }
+      },
+      "vaccines": {
+        "title": "Vacunas",
+        "empty": "Todavía no hay vacunas registradas.",
+        "noDoses": "Sin dosis aún.",
+        "actions": {
+          "show": "Mostrar",
+          "hide": "Ocultar",
+          "addVaccine": "Agregar vacuna",
+          "addDose": "Agregar dosis (hoy)"
+        },
+        "modal": {
+          "title": "Agregar vacuna",
+          "namePlaceholder": "Nombre de la vacuna",
+          "save": "Agregar"
         }
       },
       "photos": {
@@ -370,10 +384,16 @@
         "thumbAlt": "Foto de la mascota",
         "viewerAlt": "Foto de la mascota",
         "albumTitle": "Álbum de {{name}}",
+        "fields": {
+          "titlePlaceholder": "Título (opcional)",
+          "descPlaceholder": "Descripción (opcional)"
+        },
         "actions": {
-          "openAlbumTitle": "Ver todas las fotos",
           "openAlbum": "Ver álbum ({{count}})",
-          "open": "Abrir"
+          "open": "Abrir",
+          "pick": "Seleccionar una imagen",
+          "save": "Guardar",
+          "saving": "Guardando…"
         },
         "status": {
           "uploading": "Subiendo…",
@@ -396,14 +416,14 @@
       },
       "empty": "Todavía no hay consultas registradas.",
       "labels": {
-        "diagnosis": "Diagnóstico",
+        "attendingVeterinarian": "Veterinario/a",
+        "type": "Tipo",
         "treatment": "Tratamiento",
         "notes": "Notas"
       },
       "values": {
         "noDate": "Sin fecha",
-        "noReason": "Sin motivo",
-        "photoCount": "{{count}}"
+        "noReason": "Sin motivo"
       },
       "confirm": {
         "delete": "¿Eliminar esta consulta? Esta acción no se puede deshacer."
@@ -422,19 +442,22 @@
         "saving": "Guardando…",
         "cancel": "Cancelar"
       },
+      "type": {
+        "consult": "Consulta",
+        "control": "Control",
+        "surgery": "Cirugía"
+      },
       "fields": {
-        "date": "Fecha",
+        "timeDate": "Fecha",
+        "type": "Tipo de consulta",
+        "attendingVeterinarian": "Veterinario/a",
         "reasonRequired": "Motivo (obligatorio)",
-        "diagnosis": "Diagnóstico",
-        "treatment": "Tratamiento / Indicaciones",
-        "notes": "Notas",
-        "photosOptional": "Fotos (opcional)",
-        "existingPhotos": "Fotos ya adjuntas"
+        "treatment": "Tratamiento",
+        "notes": "Notas"
       },
       "errors": {
         "notFound": "No se encontró la consulta.",
         "load": "No se pudo cargar la consulta.",
-        "needAuth": "Usuario no autenticado",
         "dateRequired": "La fecha es obligatoria",
         "reasonRequired": "El motivo es obligatorio",
         "save": "No se pudo guardar",

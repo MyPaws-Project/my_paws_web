@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { getPetById, disablePet, reactivatePet } from "../../services/pets/pets.service";
+import { getPetById, deletePet, updatePet } from "../../services/pets/pets.service";
 import { uploadPetImage } from "../../services/cloudinary/cloudinary.service";
 import { addPetPhoto, listPetPhotos } from "../../services/pets/petPhotos.service";
 
@@ -23,23 +23,54 @@ export default function PetDetails() {
   const [saving, setSaving] = useState(false);
 
   const [uploading, setUploading] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState("");
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const [photos, setPhotos] = useState([]);
+  const [photoTitle, setPhotoTitle] = useState("");
+  const [photoDescription, setPhotoDescription] = useState("");
   const [loadingPhotos, setLoadingPhotos] = useState(false);
   const [albumOpen, setAlbumOpen] = useState(false);
-
+  const [pendingFile, setPendingFile] = useState(null);
+  const [pendingPreview, setPendingPreview] = useState("");
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+
+  const [vaccinesOpen, setVaccinesOpen] = useState(true);
+  const [vaccineModalOpen, setVaccineModalOpen] = useState(false);
+  const [newVaccineName, setNewVaccineName] = useState("");
 
   const [errorKey, setErrorKey] = useState("");
 
-  const isInactive = useMemo(() => pet?.active === false, [pet]);
   const NA = t("pets.details.values.na");
 
-  const sexLabel = (sex) => {
-    if (sex === "male") return t("pets.details.values.sex.male");
-    if (sex === "female") return t("pets.details.values.sex.female");
+  const vaccines = Array.isArray(pet?.vaccines) ? pet.vaccines : [];
+
+  const genderLabel = (gender) => {
+    if (gender === "male") return t("pets.details.values.gender.male");
+    if (gender === "female") return t("pets.details.values.gender.female");
     return NA;
+  };
+
+  const handleDelete = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      setErrorKey("");
+      setSaving(true);
+
+      await deletePet(clientId, petId);
+
+      setDeleteModalOpen(false);
+      navigate(`/clients/${clientId}`);
+    } catch (e) {
+      console.error(e);
+      setErrorKey("pets.details.errors.delete");
+      setDeleteModalOpen(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const loadPhotos = async () => {
@@ -91,64 +122,57 @@ export default function PetDetails() {
     };
   }, [clientId, petId]);
 
-  const handleDisable = async () => {
-    const ok = window.confirm(t("pets.details.confirm.disable"));
-    if (!ok) return;
-
-    try {
-      setErrorKey("");
-      setSaving(true);
-
-      await disablePet(clientId, petId);
-
-      setPet((prev) => (prev ? { ...prev, active: false } : prev));
-      navigate(`/clients/${clientId}`);
-    } catch (e) {
-      setErrorKey("pets.details.errors.disable");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleReactivate = async () => {
-    const ok = window.confirm(t("pets.details.confirm.reactivate"));
-    if (!ok) return;
-
-    try {
-      setErrorKey("");
-      setSaving(true);
-
-      await reactivatePet(clientId, petId);
-
-      setPet((prev) => (prev ? { ...prev, active: true } : prev));
-    } catch (e) {
-      setErrorKey("pets.details.errors.reactivate");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleUploadPhoto = async (e) => {
+  const handlePickPhoto = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setErrorKey("");
+    setPendingFile(file);
+
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    const url = URL.createObjectURL(file);
+    setPendingPreview(url);
+    e.target.value = "";
+  };
+
+  const handleCancelPending = () => {
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    setPendingFile(null);
+    setPendingPreview("");
+    setPhotoTitle("");
+    setPhotoDescription("");
+  };
+
+  const handleSavePendingPhoto = async () => {
+    if (!pendingFile) return;
 
     try {
       setErrorKey("");
       setUploading(true);
 
-      const result = await uploadPetImage(file, clientId, petId);
-      await addPetPhoto(clientId, petId, result);
+      const result = await uploadPetImage(pendingFile, clientId, petId);
 
-      setPhotoUrl(result.url);
+      await addPetPhoto(clientId, petId, {
+        url: result.url,
+        publicId: result.publicId,
+        title: photoTitle.trim(),
+        description: photoDescription.trim(),
+      });
+
       await loadPhotos();
+      handleCancelPending();
     } catch (err) {
       console.error(err);
       setErrorKey("pets.details.errors.uploadPhoto");
     } finally {
       setUploading(false);
-      e.target.value = "";
     }
   };
+  useEffect(() => {
+    return () => {
+      if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    };
+  }, [pendingPreview]);
 
   const handleOpenAlbum = async () => {
     setAlbumOpen(true);
@@ -166,6 +190,73 @@ export default function PetDetails() {
 
   const handleCloseViewer = () => {
     setSelectedPhoto(null);
+  };
+
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+
+  const normalizeKey = (s) =>
+    (s ?? "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ");
+
+  const saveVaccines = async (updated) => {
+    try {
+      setErrorKey("");
+      setSaving(true);
+
+      await updatePet(clientId, petId, { vaccines: updated });
+
+      setPet((prev) => (prev ? { ...prev, vaccines: updated } : prev));
+    } catch (e) {
+      console.error(e);
+      setErrorKey("pets.details.errors.updateVaccines");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addVaccineOrDose = async (name) => {
+    const cleanName = (name ?? "").trim();
+    if (!cleanName) return;
+
+    const key = normalizeKey(cleanName);
+    const today = todayISO();
+
+    const current = Array.isArray(pet?.vaccines) ? pet.vaccines : [];
+    const idx = current.findIndex((v) => v?.key === key);
+
+    let updated = [...current];
+
+    if (idx >= 0) {
+      const doses = Array.isArray(updated[idx].doses) ? updated[idx].doses : [];
+      if (!doses.includes(today)) {
+        updated[idx] = { ...updated[idx], doses: [...doses, today] };
+      }
+    } else {
+      updated = [...current, { name: cleanName, key, doses: [today] }];
+    }
+
+    await saveVaccines(updated);
+  };
+
+  const addDoseToday = async (vaccineKey) => {
+    const today = todayISO();
+
+    const current = Array.isArray(pet?.vaccines) ? pet.vaccines : [];
+    const idx = current.findIndex((v) => v?.key === vaccineKey);
+    if (idx < 0) return;
+
+    const updated = [...current];
+    const doses = Array.isArray(updated[idx].doses) ? updated[idx].doses : [];
+    if (doses.includes(today)) return;
+
+    updated[idx] = { ...updated[idx], doses: [...doses, today] };
+
+    await saveVaccines(updated);
   };
 
   if (loading) return <div className="pd-status">{t("pets.details.status.loading")}</div>;
@@ -198,17 +289,10 @@ export default function PetDetails() {
           ← {t("pets.details.actions.backToClient")}
         </button>
 
-        <div className="pd-head">
-          <h1 className="pd-title">{pet?.name || t("common.unnamed")}</h1>
-          {isInactive ? <p className="pd-badge">{t("pets.details.badges.inactive")}</p> : null}
-        </div>
-
         <div className="pd-actions">
           <button
             className="btn-primary"
             onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
-            disabled={saving || isInactive}
-            title={isInactive ? t("pets.details.tooltips.historyNeedsActive") : undefined}
           >
             {t("pets.details.actions.medicalHistory")}
           </button>
@@ -221,15 +305,13 @@ export default function PetDetails() {
             {t("common.edit")}
           </button>
 
-          {isInactive ? (
-            <button className="btn-secondary" onClick={handleReactivate} disabled={saving}>
-              {t("common.reactivate")}
-            </button>
-          ) : (
-            <button className="btn-danger" onClick={handleDisable} disabled={saving}>
-              {t("common.disable")}
-            </button>
-          )}
+          <button
+            className="btn-danger"
+            onClick={handleDelete}
+            disabled={saving}
+          >
+            {t("common.delete")}
+          </button>
         </div>
       </div>
 
@@ -246,8 +328,8 @@ export default function PetDetails() {
           </div>
 
           <div className="pd-item">
-            <div className="pd-label">{t("pets.details.labels.sex")}</div>
-            <div className="pd-value">{sexLabel(pet?.sex)}</div>
+            <div className="pd-label">{t("pets.details.labels.gender")}</div>
+            <div className="pd-value">{genderLabel(pet?.gender)}</div>
           </div>
 
           <div className="pd-item">
@@ -256,10 +338,10 @@ export default function PetDetails() {
           </div>
 
           <div className="pd-item">
-            <div className="pd-label">{t("pets.details.labels.currentWeight")}</div>
+            <div className="pd-label">{t("pets.details.labels.weight")}</div>
             <div className="pd-value">
-              {typeof pet?.weightKg === "number"
-                ? `${pet.weightKg} ${t("pets.details.values.weightUnit")}`
+              {typeof pet?.weight === "number"
+                ? `${pet.weight} ${t("pets.details.values.weightUnit")}`
                 : NA}
             </div>
           </div>
@@ -270,13 +352,13 @@ export default function PetDetails() {
           </div>
 
           <div className="pd-item pd-span-2">
-            <div className="pd-label">{t("pets.details.labels.chronicIllnesses")}</div>
-            <div className="pd-value">{formatList(pet?.chronicIllnesses, NA)}</div>
+            <div className="pd-label">{t("pets.details.labels.illnesses")}</div>
+            <div className="pd-value">{formatList(pet?.illnesses, NA)}</div>
           </div>
 
           <div className="pd-item pd-span-2">
-            <div className="pd-label">{t("pets.details.labels.currentMedication")}</div>
-            <div className="pd-value">{formatList(pet?.currentMedication, NA)}</div>
+            <div className="pd-label">{t("pets.details.labels.medication")}</div>
+            <div className="pd-value">{formatList(pet?.medication, NA)}</div>
           </div>
 
           {pet?.notes ? (
@@ -287,6 +369,63 @@ export default function PetDetails() {
           ) : null}
         </div>
       </section>
+      <section className="card pd-card pd-vaccines">
+        <div className="pd-vaccines-header">
+          <h2 className="pd-vaccines-title">{t("pets.details.vaccines.title")}</h2>
+
+          <div className="pd-vaccines-actions">
+            <button
+              className="btn-secondary"
+              type="button"
+              onClick={() => setVaccinesOpen((v) => !v)}
+            >
+              {vaccinesOpen ? t("pets.details.vaccines.actions.hide") : t("pets.details.vaccines.actions.show")}
+            </button>
+
+            <button
+              className="btn-primary"
+              type="button"
+              onClick={() => setVaccineModalOpen(true)}
+            >
+              {t("pets.details.vaccines.actions.addVaccine")}
+            </button>
+          </div>
+        </div>
+
+        {vaccinesOpen ? (
+          vaccines.length === 0 ? (
+            <p className="pd-vaccines-empty">{t("pets.details.vaccines.empty")}</p>
+          ) : (
+            <div className="pd-vaccines-list">
+              {vaccines.map((v) => (
+                <div key={v.key || v.name} className="pd-vaccine">
+                  <div className="pd-vaccine-top">
+                    <div className="pd-vaccine-name">{v.name || NA}</div>
+
+                    <button
+                      className="btn-secondary"
+                      type="button"
+                      onClick={() => addDoseToday(v.key)}
+                    >
+                      {t("pets.details.vaccines.actions.addDose")}
+                    </button>
+                  </div>
+
+                  <div className="pd-vaccine-doses">
+                    {Array.isArray(v.doses) && v.doses.length > 0
+                      ? v.doses.map((d) => (
+                        <span key={d} className="pd-dose-chip">
+                          {d}
+                        </span>
+                      ))
+                      : <span className="pd-vaccine-no-doses">{t("pets.details.vaccines.noDoses")}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        ) : null}
+      </section>
 
       <section className="card pd-card pd-photos">
         <div className="pd-photos-header">
@@ -296,7 +435,6 @@ export default function PetDetails() {
             className="btn-secondary"
             onClick={handleOpenAlbum}
             disabled={saving || uploading}
-            title={t("pets.details.photos.actions.openAlbumTitle")}
           >
             {t("pets.details.photos.actions.openAlbum", { count: photos.length })}
           </button>
@@ -304,21 +442,76 @@ export default function PetDetails() {
 
         <div className="pd-upload-row">
           <input
-            className="pd-file"
+            className="pd-input"
+            value={photoTitle}
+            onChange={(e) => setPhotoTitle(e.target.value)}
+            placeholder={t("pets.details.photos.fields.titlePlaceholder")}
+            disabled={uploading || saving}
+            maxLength={60}
+          />
+
+          <textarea
+            className="pd-textarea"
+            value={photoDescription}
+            onChange={(e) => setPhotoDescription(e.target.value)}
+            placeholder={t("pets.details.photos.fields.descPlaceholder")}
+            disabled={uploading || saving}
+            rows={3}
+            maxLength={250}
+          />
+
+          <input
+            id="pd-file"
+            className="pd-file-hidden"
             type="file"
             accept="image/*"
-            onChange={handleUploadPhoto}
+            onChange={handlePickPhoto}
             disabled={uploading || saving}
           />
 
-          {uploading ? <span className="pd-uploading">{t("pets.details.photos.status.uploading")}</span> : null}
-        </div>
-
-        {photoUrl ? (
-          <div className="pd-preview">
-            <img src={photoUrl} alt={t("pets.details.photos.previewAlt")} />
+          <div className="pd-upload-actions">
+            <label
+              className={`btn-secondary ${uploading || saving ? "is-disabled" : ""}`}
+              htmlFor="pd-file"
+            >
+              {t("pets.details.photos.actions.pick")}
+            </label>
           </div>
-        ) : null}
+
+          {pendingPreview ? (
+            <>
+              <div className="pd-preview">
+                <img src={pendingPreview} alt={t("pets.details.photos.previewAlt")} />
+              </div>
+
+              <div className="pd-upload-bottom">
+                <button
+                  className="btn-secondary"
+                  type="button"
+                  onClick={handleCancelPending}
+                  disabled={uploading || saving || !pendingFile}
+                >
+                  {t("common.cancel")}
+                </button>
+
+                <button
+                  className="btn-primary"
+                  type="button"
+                  onClick={handleSavePendingPhoto}
+                  disabled={uploading || saving || !pendingFile}
+                >
+                  {uploading
+                    ? t("pets.details.photos.actions.saving")
+                    : t("pets.details.photos.actions.save")}
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {uploading ? (
+            <span className="pd-uploading">{t("pets.details.photos.status.uploading")}</span>
+          ) : null}
+        </div>
       </section>
 
       {albumOpen ? (
@@ -346,9 +539,15 @@ export default function PetDetails() {
                     type="button"
                     className="pd-album-thumb"
                     onClick={() => handleOpenViewer(p)}
-                    title={t("pets.details.photos.actions.open")}
                   >
-                    <img src={p.url} alt={t("pets.details.photos.thumbAlt")} />
+                    <div className="pd-thumb-imgwrap">
+                      <img src={p.url} alt={p.title || t("pets.details.photos.thumbAlt")} />
+                    </div>
+
+                    <div className="pd-thumb-meta">
+                      {p.title ? <div className="pd-thumb-title">{p.title}</div> : null}
+                      {p.description ? <div className="pd-thumb-desc">{p.description}</div> : null}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -364,6 +563,99 @@ export default function PetDetails() {
               ✕
             </button>
             <img className="pd-viewer-img" src={selectedPhoto.url} alt={t("pets.details.photos.viewerAlt")} />
+
+            <div className="pd-viewer-meta">
+              {selectedPhoto.title ? <div className="pd-viewer-title">{selectedPhoto.title}</div> : null}
+              {selectedPhoto.description ? <div className="pd-viewer-desc">{selectedPhoto.description}</div> : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+
+      {vaccineModalOpen ? (
+        <div
+          className="pd-modal-overlay"
+          onClick={() => setVaccineModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="pd-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pd-modal-header">
+              <h3 className="pd-modal-title">{t("pets.details.vaccines.modal.title")}</h3>
+            </div>
+
+            <input
+              className="pd-input"
+              value={newVaccineName}
+              onChange={(e) => setNewVaccineName(e.target.value)}
+              placeholder={t("pets.details.vaccines.modal.namePlaceholder")}
+              maxLength={40}
+            />
+
+            <div className="pd-modal-actions">
+              <button
+                className="btn-secondary"
+                type="button"
+                onClick={() => {
+                  setVaccineModalOpen(false);
+                  setNewVaccineName("");
+                }}
+              >
+                {t("common.cancel")}
+              </button>
+
+              <button
+                className="btn-primary"
+                type="button"
+                onClick={async () => {
+                  await addVaccineOrDose(newVaccineName);
+                  setVaccineModalOpen(false);
+                  setNewVaccineName("");
+                }}
+              >
+                {t("pets.details.vaccines.modal.save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteModalOpen ? (
+        <div
+          className="pd-modal-overlay"
+          onClick={() => !saving && setDeleteModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="pd-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pd-modal-header">
+              <h3 className="pd-modal-title">{t("pets.details.deleteModal.title")}</h3>
+            </div>
+
+            <p className="pd-modal-text">
+              {t("pets.details.deleteModal.text", { name: pet?.name || t("common.unnamed") })}
+            </p>
+
+            <div className="pd-modal-actions">
+              <button
+                className="btn-secondary"
+                type="button"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={saving}
+              >
+                {t("common.cancel")}
+              </button>
+
+              <button
+                className="btn-danger"
+                type="button"
+                onClick={confirmDelete}
+                disabled={saving}
+              >
+                {saving ? t("pets.details.deleteModal.deleting") : t("common.delete")}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

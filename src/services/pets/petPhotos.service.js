@@ -14,6 +14,8 @@ export async function addPetPhoto(clientId, petId, photo) {
   const docRef = await addDoc(ref, {
     url: photo.url,
     publicId: photo.publicId,
+    title: photo.title || "",
+    description: photo.description || "",
     createdAt: serverTimestamp(),
   });
 

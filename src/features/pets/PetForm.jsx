@@ -21,12 +21,12 @@ export default function PetForm() {
     name: "",
     species: "",
     breed: "",
-    sex: "",
+    gender: "",
     birthDate: "",
-    weightKg: "",
+    weight: "",
     allergies: "",
-    chronicIllnesses: "",
-    currentMedication: "",
+    illnesses: "",
+    medication: "",
     notes: ""
   });
 
@@ -54,12 +54,12 @@ export default function PetForm() {
           name: data.name ?? "",
           species: data.species ?? "",
           breed: data.breed ?? "",
-          sex: data.sex ?? "",
+          gender: data.gender ?? "",
           birthDate: data.birthDate ?? "",
-          weightKg: data.weightKg == null ? "" : String(data.weightKg),
+          weight: data.weight == null ? "" : String(data.weight),
           allergies: Array.isArray(data.allergies) ? data.allergies.join(", ") : "",
-          chronicIllnesses: Array.isArray(data.chronicIllnesses) ? data.chronicIllnesses.join(", ") : "",
-          currentMedication: Array.isArray(data.currentMedication) ? data.currentMedication.join(", ") : "",
+          illnesses: Array.isArray(data.illnesses) ? data.illnesses.join(", ") : "",
+          medication: Array.isArray(data.medication) ? data.medication.join(", ") : "",
           notes: data.notes ?? ""
         });
       } catch {
@@ -96,18 +96,21 @@ export default function PetForm() {
       return;
     }
 
-    const weightNum = form.weightKg === "" || form.weightKg == null ? null : Number(form.weightKg);
+    const weight =
+      form.weight === "" || form.weight == null
+        ? null
+        : Number(form.weight);
 
     const payload = {
       name: nameTrimmed,
       species: form.species ?? "",
       breed: form.breed ?? "",
-      sex: form.sex ?? "",
+      gender: form.gender ?? "",
       birthDate: form.birthDate ?? "",
-      weightKg: Number.isFinite(weightNum) ? weightNum : null,
+      weight: Number.isFinite(weight) ? weight : null,
       allergies: toArray(form.allergies),
-      chronicIllnesses: toArray(form.chronicIllnesses),
-      currentMedication: toArray(form.currentMedication),
+      illnesses: toArray(form.illnesses),
+      medication: toArray(form.medication),
       notes: form.notes ?? ""
     };
 
@@ -181,11 +184,11 @@ export default function PetForm() {
           </div>
 
           <div className="pf-field">
-            <label className="pf-label">{t("pets.form.fields.sex")}</label>
-            <select className="pf-input" name="sex" value={form.sex} onChange={onChange} disabled={saving}>
+            <label className="pf-label">{t("pets.form.fields.gender")}</label>
+            <select className="pf-input" name="gender" value={form.gender} onChange={onChange} disabled={saving}>
               <option value="">{t("pets.form.values.na")}</option>
-              <option value="male">{t("pets.details.values.sex.male")}</option>
-              <option value="female">{t("pets.details.values.sex.female")}</option>
+              <option value="male">{t("pets.details.values.gender.male")}</option>
+              <option value="female">{t("pets.details.values.gender.female")}</option>
             </select>
           </div>
 
@@ -202,16 +205,16 @@ export default function PetForm() {
           </div>
 
           <div className="pf-field">
-            <label className="pf-label">{t("pets.form.fields.weightKg")}</label>
+            <label className="pf-label">{t("pets.form.fields.weight")}</label>
             <input
               className="pf-input"
               type="number"
               step="0.1"
-              name="weightKg"
-              value={form.weightKg}
+              name="weight"
+              value={form.weight}
               onChange={onChange}
               disabled={saving}
-              placeholder={t("pets.form.placeholders.weightKg")}
+              placeholder={t("pets.form.placeholders.weight")}
             />
           </div>
 
@@ -228,26 +231,26 @@ export default function PetForm() {
           </div>
 
           <div className="pf-field pf-span-2">
-            <label className="pf-label">{t("pets.form.fields.chronicIllnesses")}</label>
+            <label className="pf-label">{t("pets.form.fields.illnesses")}</label>
             <input
               className="pf-input"
-              name="chronicIllnesses"
-              value={form.chronicIllnesses}
+              name="illnesses"
+              value={form.illnesses}
               onChange={onChange}
               disabled={saving}
-              placeholder={t("pets.form.placeholders.chronicIllnesses")}
+              placeholder={t("pets.form.placeholders.illnesses")}
             />
           </div>
 
           <div className="pf-field pf-span-2">
-            <label className="pf-label">{t("pets.form.fields.currentMedication")}</label>
+            <label className="pf-label">{t("pets.form.fields.medication")}</label>
             <input
               className="pf-input"
-              name="currentMedication"
-              value={form.currentMedication}
+              name="medication"
+              value={form.medication}
               onChange={onChange}
               disabled={saving}
-              placeholder={t("pets.form.placeholders.currentMedication")}
+              placeholder={t("pets.form.placeholders.medication")}
             />
           </div>
 

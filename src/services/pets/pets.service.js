@@ -7,22 +7,20 @@ import {
   orderBy,
   serverTimestamp,
   updateDoc,
+  deleteDoc,
   doc,
-  where,
 } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
 
 const petsCol = (clientId) => collection(db, 'clients', clientId, 'pets');
 
-export async function getPetsByClient(clientId, { includeInactive = false } = {}) {
+export async function getPetsByClient(clientId) {
   const user = auth.currentUser;
   if (!user) return [];
 
   const base = petsCol(clientId);
 
-  const q = includeInactive
-    ? query(base, orderBy('createdAt', 'desc'))
-    : query(base, where('active', '==', true), orderBy('createdAt', 'desc'));
+  const q = query(base, orderBy('createdAt', 'desc'));
 
   const snap = await getDocs(q);
 
@@ -48,22 +46,23 @@ export async function createPet(clientId, data) {
   const user = auth.currentUser;
   if (!user) throw new Error('Usuario no autenticado');
 
-  const weight = data.weightKg;
-  const weightKg =
-    weight === '' || weight == null ? null : Number(weight);
+  const weight =
+    data.weight === '' || data.weight == null
+      ? null
+      : Number(data.weight);
 
   const payload = {
     name: (data.name ?? '').trim(),
     species: data.species ?? '',
     breed: data.breed ?? '',
-    sex: data.sex ?? '',
+    gender: data.gender ?? '',
     birthDate: data.birthDate ?? '',
 
-    weightKg: Number.isFinite(weightKg) ? weightKg : null,
+    weight: Number.isFinite(weight) ? weight : null,
 
     allergies: Array.isArray(data.allergies) ? data.allergies : [],
-    chronicIllnesses: Array.isArray(data.chronicIllnesses) ? data.chronicIllnesses : [],
-    currentMedication: Array.isArray(data.currentMedication) ? data.currentMedication : [],
+    illnesses: Array.isArray(data.illnesses) ? data.illnesses : [],
+    medication: Array.isArray(data.medication) ? data.medication : [],
 
     notes: data.notes ?? '',
     active: true,
@@ -80,40 +79,49 @@ export async function updatePet(clientId, petId, data) {
   const user = auth.currentUser;
   if (!user) throw new Error('Usuario no autenticado');
 
-  const ref = doc(db, 'clients', clientId, 'pets', petId);
+  if (!data || typeof data !== 'object') throw new Error('Datos inválidos');
 
-  const weight = data?.weightKg;
-  const weightKg =
-    weight === '' || weight == null ? null : Number(weight);
+  const ref = doc(db, 'clients', clientId, 'pets', petId);
 
   const payload = {
     ...data,
-    name: (data?.name ?? '').trim(),
-    weightKg: Number.isFinite(weightKg) ? weightKg : null,
     updatedAt: serverTimestamp(),
   };
 
-  if (!Array.isArray(payload.allergies)) payload.allergies = [];
-  if (!Array.isArray(payload.chronicIllnesses)) payload.chronicIllnesses = [];
-  if (!Array.isArray(payload.currentMedication)) payload.currentMedication = [];
+  if (Object.prototype.hasOwnProperty.call(data, 'name')) {
+    payload.name = (data.name ?? '').trim();
+  }
+
+  if (Object.prototype.hasOwnProperty.call(data, 'weight')) {
+    const w =
+      data.weight === '' || data.weight == null
+        ? null
+        : Number(data.weight);
+
+    payload.weight = Number.isFinite(w) ? w : null;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(data, 'allergies')) {
+    payload.allergies = Array.isArray(data.allergies) ? data.allergies : [];
+  }
+
+  if (Object.prototype.hasOwnProperty.call(data, 'illnesses')) {
+    payload.illnesses = Array.isArray(data.illnesses) ? data.illnesses : [];
+  }
+
+  if (Object.prototype.hasOwnProperty.call(data, 'medication')) {
+    payload.medication = Array.isArray(data.medication) ? data.medication : [];
+  }
 
   delete payload.createdAt;
 
   await updateDoc(ref, payload);
 }
 
-export async function disablePet(clientId, petId) {
+export async function deletePet(clientId, petId) {
   const user = auth.currentUser;
   if (!user) throw new Error('Usuario no autenticado');
 
   const ref = doc(db, 'clients', clientId, 'pets', petId);
-  await updateDoc(ref, { active: false, updatedAt: serverTimestamp() });
-}
-
-export async function reactivatePet(clientId, petId) {
-  const user = auth.currentUser;
-  if (!user) throw new Error('Usuario no autenticado');
-
-  const ref = doc(db, 'clients', clientId, 'pets', petId);
-  await updateDoc(ref, { active: true, updatedAt: serverTimestamp() });
+  await deleteDoc(ref);
 }

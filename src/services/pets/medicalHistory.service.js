@@ -18,14 +18,21 @@ const historyCol = (clientId, petId) =>
 const historyDoc = (clientId, petId, entryId) =>
   doc(db, 'clients', clientId, 'pets', petId, 'medicalHistory', entryId);
 
+const ALLOWED_TYPES = new Set(['consult', 'control', 'surgery']);
+
+const sanitizeType = (value) => {
+  const v = String(value || '').toLowerCase().trim();
+  return ALLOWED_TYPES.has(v) ? v : 'consult';
+};
+
 export async function createHistoryEntry(clientId, petId, data) {
   const payload = {
-    date: (data?.date ?? '').trim(),
-    reason: (data?.reason ?? '').trim(),
-    diagnosis: (data?.diagnosis ?? '').trim(),
-    treatment: (data?.treatment ?? '').trim(),
+    type: sanitizeType(data?.type),
+    attending_veterinarian: (data?.attending_veterinarian ?? '').trim(),
+    time_date: (data?.time_date ?? '').trim(),
     notes: (data?.notes ?? '').trim(),
-    photos: Array.isArray(data?.photos) ? data.photos : [],
+    reason: (data?.reason ?? '').trim(),
+    treatment: (data?.treatment ?? '').trim(),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -35,7 +42,7 @@ export async function createHistoryEntry(clientId, petId, data) {
 }
 
 export async function listHistoryEntries(clientId, petId) {
-  const q = query(historyCol(clientId, petId), orderBy('date', 'desc'));
+  const q = query(historyCol(clientId, petId), orderBy('time_date', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
@@ -51,6 +58,23 @@ export async function updateHistoryEntry(clientId, petId, entryId, data) {
     ...data,
     updatedAt: serverTimestamp(),
   };
+
+  if ('type' in payload) payload.type = sanitizeType(payload.type);
+
+  if ('attending_veterinarian' in payload)
+    payload.attending_veterinarian = (payload.attending_veterinarian ?? '').toString().trim();
+
+  if ('time_date' in payload)
+    payload.time_date = (payload.time_date ?? '').toString().trim();
+
+  if ('notes' in payload)
+    payload.notes = (payload.notes ?? '').toString().trim();
+
+  if ('reason' in payload)
+    payload.reason = (payload.reason ?? '').toString().trim();
+
+  if ('treatment' in payload)
+  payload.treatment = (payload.treatment ?? '').toString().trim();
 
   delete payload.createdAt;
 
