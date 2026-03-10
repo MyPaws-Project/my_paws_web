@@ -6,12 +6,6 @@
   color: var(--text);
 }
 
-.al-page *,
-.al-page *::before,
-.al-page *::after {
-  box-sizing: border-box;
-}
-
 .al-head {
   display: flex;
   justify-content: space-between;
@@ -189,17 +183,72 @@
   background: rgba(255, 0, 0, 0.12);
 }
 
+.al-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+.al-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow);
+}
+
+.al-modal-header {
+  margin-bottom: 12px;
+}
+
+.al-modal-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.al-modal-text {
+  margin: 8px 0 0;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.al-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.btn-secondary {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: white;
+  color: var(--text);
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
 @media (max-width: 720px) {
   .al-row {
     grid-template-columns: 1fr;
     gap: 6px;
   }
 
-  .al-actions {
-    justify-content: stretch;
-  }
-
-  .btn-danger {
+  .al-actions .btn-danger {
     width: 100%;
   }
 

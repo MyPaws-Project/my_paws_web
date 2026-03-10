@@ -52,9 +52,9 @@ export default function AppRouter() {
           <Route path="/clients/:id/pets/:petId/history/new" element={<MedicalHistoryForm />} />
           <Route path="/clients/:id/pets/:petId/history/:entryId/edit" element={<MedicalHistoryForm />} />
 
-          <Route path="/clients/:id/appointments" element={<AppointmentsList />} />
           <Route path="/calendar" element={<AppointmentsCalendar />} />
           <Route path="/appointments" element={<Navigate to="/calendar" replace />} />
+          <Route path="/appointments/today" element={<AppointmentsList />} />
           <Route path="/appointments/new" element={<AppointmentForm />} />
           <Route path="/appointments/:appointmentId/edit" element={<AppointmentForm />} />
 

@@ -20,6 +20,7 @@ export default function MedicalHistoryList() {
   const { id: clientId, petId } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [entryToDelete, setEntryToDelete] = useState(null);
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +37,7 @@ export default function MedicalHistoryList() {
 
       const list = Array.isArray(data) ? data : [];
       setItems(list);
-    } catch (e) {
+    } catch {
       if (!aliveRef.current) return;
       setErrorKey("medicalHistory.list.errors.load");
       setItems([]);
@@ -66,9 +67,8 @@ export default function MedicalHistoryList() {
     return copy;
   }, [items]);
 
-  const handleDelete = async (entryId) => {
-    const ok = window.confirm(t("medicalHistory.list.confirm.delete"));
-    if (!ok) return;
+  const confirmDelete = async () => {
+    if (!entryToDelete) return;
 
     const aliveRef = { current: true };
 
@@ -76,11 +76,13 @@ export default function MedicalHistoryList() {
       setSaving(true);
       setErrorKey("");
 
-      await deleteHistoryEntry(clientId, petId, entryId);
+      await deleteHistoryEntry(clientId, petId, entryToDelete);
 
+      setEntryToDelete(null);
       await load(aliveRef);
-    } catch (e) {
+    } catch {
       setErrorKey("medicalHistory.list.errors.delete");
+      setEntryToDelete(null);
     } finally {
       setSaving(false);
       aliveRef.current = false;
@@ -146,18 +148,18 @@ export default function MedicalHistoryList() {
                   <button
                     type="button"
                     className="mh-main"
-                    onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history/${x.id}/edit`)}
+                    onClick={() =>
+                      navigate(`/clients/${clientId}/pets/${petId}/history/${x.id}/edit`)
+                    }
                     disabled={saving}
                     title={t("common.edit")}
                   >
-                    <div className="mh-topline">
-                      <div className="mh-date">
-                        {x.time_date || t("medicalHistory.list.values.noDate")}
+                    <div className="mh-titleRow">
+                      <div className="mh-typeTitle">
+                        {x.type
+                          ? t(`medicalHistory.form.type.${x.type}`)
+                          : t("medicalHistory.list.values.noType")}
                       </div>
-                    </div>
-
-                    <div className="mh-reason">
-                      {x.reason || t("medicalHistory.list.values.noReason")}
                     </div>
                   </button>
 
@@ -174,7 +176,7 @@ export default function MedicalHistoryList() {
 
                     <button
                       className="btn-danger"
-                      onClick={() => handleDelete(x.id)}
+                      onClick={() => setEntryToDelete(x.id)}
                       disabled={saving}
                     >
                       {t("medicalHistory.list.actions.delete")}
@@ -182,30 +184,81 @@ export default function MedicalHistoryList() {
                   </div>
                 </div>
 
+                <div className="mh-reason">
+                  {x.reason || t("medicalHistory.list.values.noReason")}
+                </div>
+
+                <div className="mh-item-date">
+                  {x.time_date || t("medicalHistory.list.values.noDate")}
+                </div>
+
                 <div className="mh-details">
+                  {x.attending_veterinarian ? (
+                    <p className="mh-line">
+                      <span className="mh-label">
+                        {t("medicalHistory.list.labels.attendingVeterinarian")}
+                      </span>
+                      <span className="mh-value">{x.attending_veterinarian}</span>
+                    </p>
+                  ) : null}
 
                   {x.treatment ? (
                     <p className="mh-line">
-                      <b>{t("medicalHistory.list.labels.treatment")}:</b> {x.treatment}
-                    </p>
-                  ) : null}
-
-                  {x.attending_veterinarian ? (
-                    <p className="mh-line">
-                      <b>{t("medicalHistory.list.labels.attendingVeterinarian")}:</b> {x.attending_veterinarian}
-                    </p>
-                  ) : null}
-
-                  {x.type ? (
-                    <p className="mh-line">
-                      <b>{t("medicalHistory.list.labels.type")}:</b> {t(`medicalHistory.form.type.${x.type}`)}
+                      <span className="mh-label">
+                        {t("medicalHistory.list.labels.treatment")}
+                      </span>
+                      <span className="mh-value">{x.treatment}</span>
                     </p>
                   ) : null}
 
                   {x.notes ? (
                     <p className="mh-line mh-notes">
-                      <b>{t("medicalHistory.list.labels.notes")}:</b> {x.notes}
+                      <span className="mh-label">
+                        {t("medicalHistory.list.labels.notes")}
+                      </span>
+                      <span className="mh-value">{x.notes}</span>
                     </p>
+                  ) : null}
+
+                  {entryToDelete ? (
+                    <div
+                      className="mh-modal-overlay"
+                      onClick={() => !saving && setEntryToDelete(null)}
+                      role="dialog"
+                      aria-modal="true"
+                    >
+                      <div className="mh-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="mh-modal-header">
+                          <h3 className="mh-modal-title">{t("medicalHistory.list.confirm.title")}</h3>
+                        </div>
+
+                        <p className="mh-modal-text">
+                          {t("medicalHistory.list.confirm.delete")}
+                        </p>
+
+                        <div className="mh-modal-actions">
+                          <button
+                            className="btn-secondary"
+                            type="button"
+                            onClick={() => setEntryToDelete(null)}
+                            disabled={saving}
+                          >
+                            {t("common.cancel")}
+                          </button>
+
+                          <button
+                            className="btn-danger"
+                            type="button"
+                            onClick={confirmDelete}
+                            disabled={saving}
+                          >
+                            {saving
+                              ? t("medicalHistory.list.actions.deleting", { defaultValue: "Deleting..." })
+                              : t("medicalHistory.list.actions.delete")}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   ) : null}
                 </div>
               </div>

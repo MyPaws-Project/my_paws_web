@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Timestamp } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 
 import { auth } from "../../services/firebase/firebase";
-import { createAppointment } from "../../services/appointments/appointments.service";
+import { createAppointment, getAppointment, updateAppointment, } from "../../services/appointments/appointments.service";
 import { getClients } from "../../services/clients/clients.service";
 
 import "./appointmentForm.css";
@@ -19,22 +19,28 @@ export default function AppointmentForm() {
   const navigate = useNavigate();
   const { search } = useLocation();
   const params = new URLSearchParams(search);
+  const { appointmentId } = useParams();
+  const isEdit = Boolean(appointmentId);
 
   const { t, i18n } = useTranslation();
 
   const start = params.get("start");
   const end = params.get("end");
 
-  const startDate = useMemo(() => safeDate(start), [start]);
-  const endDate = useMemo(() => safeDate(end), [end]);
+  const queryStartDate = useMemo(() => safeDate(start), [start]);
+  const queryEndDate = useMemo(() => safeDate(end), [end]);
 
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState("");
 
-  const [reason, setReason] = useState(t("appointments.form.defaults.reason"));
+  const [startDate, setStartDate] = useState(queryStartDate);
+  const [endDate, setEndDate] = useState(queryEndDate);
+
+  const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [loadingClients, setLoadingClients] = useState(true);
+  const [loadingAppointment, setLoadingAppointment] = useState(isEdit);
   const [error, setError] = useState("");
 
   const formatHour = (d) => {
@@ -70,7 +76,10 @@ export default function AppointmentForm() {
         const active = (data || []).filter((c) => c.active !== false);
 
         setClients(active);
-        if (active.length) setClientId(active[0].id);
+
+        if (!isEdit && active.length) {
+          setClientId(active[0].id);
+        }
       } catch (e) {
         console.error(e);
         setError(t("appointments.form.errors.loadClients"));
@@ -80,24 +89,78 @@ export default function AppointmentForm() {
     };
 
     loadClients();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isEdit, t]);
 
   useEffect(() => {
-    setReason((prev) => (prev?.trim() ? prev : t("appointments.form.defaults.reason")));
-  }, [t]);
+    if (!isEdit) {
+      setReason((prev) => (prev?.trim() ? prev : t("appointments.form.defaults.reason")));
+    }
+  }, [isEdit, t]);
 
-  const handleCreate = async () => {
+  useEffect(() => {
+    if (!isEdit) {
+      setStartDate(queryStartDate);
+      setEndDate(queryEndDate);
+      setLoadingAppointment(false);
+      return;
+    }
+
+    let alive = true;
+
+    const loadAppointment = async () => {
+      try {
+        setLoadingAppointment(true);
+        setError("");
+
+        const appt = await getAppointment(appointmentId);
+
+        if (!alive) return;
+
+        if (!appt) {
+          setError(t("appointments.form.errors.load"));
+          return;
+        }
+
+        setClientId(appt.clientId || "");
+        setReason(
+          appt.reason?.trim()
+            ? appt.reason
+            : t("appointments.form.defaults.reason")
+        );
+        setNotes(appt.notes || "");
+
+        const loadedStart = appt.startTime?.toDate
+          ? appt.startTime.toDate()
+          : safeDate(appt.startTime);
+
+        const loadedEnd = appt.endTime?.toDate
+          ? appt.endTime.toDate()
+          : safeDate(appt.endTime);
+
+        setStartDate(loadedStart);
+        setEndDate(loadedEnd);
+      } catch (e) {
+        console.error(e);
+        if (!alive) return;
+        setError(t("appointments.form.errors.load"));
+      } finally {
+        if (alive) setLoadingAppointment(false);
+      }
+    };
+
+    loadAppointment();
+
+    return () => {
+      alive = false;
+    };
+  }, [appointmentId, isEdit, t]);
+
+  const handleSubmit = async () => {
     setError("");
 
     const user = auth.currentUser;
     if (!user) {
       setError(t("appointments.form.errors.needLogin"));
-      return;
-    }
-
-    if (!start || !end) {
-      setError(t("appointments.form.errors.missingRange"));
       return;
     }
 
@@ -111,10 +174,15 @@ export default function AppointmentForm() {
       return;
     }
 
+    if (!isEdit && (!start || !end)) {
+      setError(t("appointments.form.errors.missingRange"));
+      return;
+    }
+
     try {
       setSaving(true);
 
-      await createAppointment({
+      const payload = {
         vetId: user.uid,
         clientId,
         petId: null,
@@ -123,12 +191,22 @@ export default function AppointmentForm() {
         reason,
         notes,
         status: "scheduled",
-      });
+      };
+
+      if (isEdit) {
+        await updateAppointment(appointmentId, payload);
+      } else {
+        await createAppointment(payload);
+      }
 
       navigate("/calendar");
     } catch (e) {
       console.error(e);
-      setError(t("appointments.form.errors.create"));
+      setError(
+        isEdit
+          ? t("appointments.form.errors.update")
+          : t("appointments.form.errors.create")
+      );
     } finally {
       setSaving(false);
     }
@@ -137,6 +215,10 @@ export default function AppointmentForm() {
   const dayLabel = formatDay(startDate);
   const timeLabel = `${formatHour(startDate)} – ${formatHour(endDate)}`;
 
+  if (loadingClients || loadingAppointment) {
+    return <p className="af-status">{t("appointments.form.loading")}</p>;
+  }
+
   return (
     <div className="af-page">
       <div className="af-header">
@@ -144,7 +226,11 @@ export default function AppointmentForm() {
           ← {t("appointments.form.actions.back")}
         </button>
 
-        <h1 className="af-title">{t("appointments.form.titleNew")}</h1>
+        <h1 className="af-title">
+          {isEdit
+            ? t("appointments.form.titleEdit")
+            : t("appointments.form.titleNew")}
+        </h1>
       </div>
 
       <div className="af-meta card">
@@ -207,8 +293,18 @@ export default function AppointmentForm() {
             {t("common.cancel")}
           </button>
 
-          <button className="btn-primary" onClick={handleCreate} disabled={saving || loadingClients}>
-            {saving ? t("appointments.form.actions.creating") : t("appointments.form.actions.create")}
+          <button
+            className="btn-primary"
+            onClick={handleSubmit}
+            disabled={saving || loadingClients || loadingAppointment}
+          >
+            {saving
+              ? isEdit
+                ? t("appointments.form.actions.saving")
+                : t("appointments.form.actions.creating")
+              : isEdit
+                ? t("appointments.form.actions.save")
+                : t("appointments.form.actions.create")}
           </button>
         </div>
       </div>

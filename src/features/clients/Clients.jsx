@@ -28,6 +28,8 @@ export default function Clients() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [clientToDisable, setClientToDisable] = useState(null);
+  const [clientToReactivate, setClientToReactivate] = useState(null);
   const [showInactive, setShowInactive] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -80,35 +82,37 @@ export default function Clients() {
     }
   };
 
-  const handleDisable = async (clientId) => {
-    const ok = window.confirm(t("clients.confirm.disable"));
-    if (!ok) return;
+  const confirmDisable = async () => {
+    if (!clientToDisable) return;
 
     setSaving(true);
     setError("");
     try {
-      await disableClient(clientId);
+      await disableClient(clientToDisable.id);
+      setClientToDisable(null);
       await loadClients();
     } catch (err) {
       console.error("ERROR desactivando cliente:", err);
       setError(err?.message || t("clients.errors.disable"));
+      setClientToDisable(null);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleReactivate = async (clientId) => {
-    const ok = window.confirm(t("clients.confirm.reactivate"));
-    if (!ok) return;
+  const confirmReactivate = async () => {
+    if (!clientToReactivate) return;
 
     setSaving(true);
     setError("");
     try {
-      await updateClient(clientId, { active: true });
+      await updateClient(clientToReactivate.id, { active: true });
+      setClientToReactivate(null);
       await loadClients();
     } catch (err) {
       console.error("ERROR reactivando cliente:", err);
       setError(err?.message || t("clients.errors.reactivate"));
+      setClientToReactivate(null);
     } finally {
       setSaving(false);
     }
@@ -227,8 +231,8 @@ export default function Clients() {
               {search
                 ? t("clients.empty.search")
                 : showInactive
-                ? t("clients.empty.inactive")
-                : t("clients.empty.active")}
+                  ? t("clients.empty.inactive")
+                  : t("clients.empty.active")}
             </p>
           ) : (
             <div className="clients-list">
@@ -261,7 +265,7 @@ export default function Clients() {
                     {showInactive ? (
                       <button
                         className="btn-primary"
-                        onClick={() => handleReactivate(c.id)}
+                        onClick={() => setClientToReactivate(c)}
                         disabled={saving}
                       >
                         {t("common.reactivate")}
@@ -269,7 +273,7 @@ export default function Clients() {
                     ) : (
                       <button
                         className="btn-danger"
-                        onClick={() => handleDisable(c.id)}
+                        onClick={() => setClientToDisable(c)}
                         disabled={saving || c.active === false}
                         title={
                           c.active === false
@@ -280,6 +284,88 @@ export default function Clients() {
                         {t("common.disable")}
                       </button>
                     )}
+
+                    {clientToDisable ? (
+                      <div
+                        className="clients-modal-overlay"
+                        onClick={() => !saving && setClientToDisable(null)}
+                        role="dialog"
+                        aria-modal="true"
+                      >
+                        <div className="clients-modal" onClick={(e) => e.stopPropagation()}>
+                          <div className="clients-modal-header">
+                            <h3 className="clients-modal-title">{t("clients.confirm.disableTitle")}</h3>
+                          </div>
+
+                          <p className="clients-modal-text">
+                            {t("clients.confirm.disableText", {
+                              name: clientToDisable.fullName || t("common.unnamed"),
+                            })}
+                          </p>
+
+                          <div className="clients-modal-actions">
+                            <button
+                              className="btn-secondary"
+                              type="button"
+                              onClick={() => setClientToDisable(null)}
+                              disabled={saving}
+                            >
+                              {t("common.cancel")}
+                            </button>
+
+                            <button
+                              className="btn-danger"
+                              type="button"
+                              onClick={confirmDisable}
+                              disabled={saving}
+                            >
+                              {saving ? t("clients.actions.disabling") : t("common.disable")}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {clientToReactivate ? (
+                      <div
+                        className="clients-modal-overlay"
+                        onClick={() => !saving && setClientToReactivate(null)}
+                        role="dialog"
+                        aria-modal="true"
+                      >
+                        <div className="clients-modal" onClick={(e) => e.stopPropagation()}>
+                          <div className="clients-modal-header">
+                            <h3 className="clients-modal-title">{t("clients.confirm.reactivateTitle")}</h3>
+                          </div>
+
+                          <p className="clients-modal-text">
+                            {t("clients.confirm.reactivateText", {
+                              name: clientToReactivate.fullName || t("common.unnamed"),
+                            })}
+                          </p>
+
+                          <div className="clients-modal-actions">
+                            <button
+                              className="btn-secondary"
+                              type="button"
+                              onClick={() => setClientToReactivate(null)}
+                              disabled={saving}
+                            >
+                              {t("common.cancel")}
+                            </button>
+
+                            <button
+                              className="btn-primary"
+                              type="button"
+                              onClick={confirmReactivate}
+                              disabled={saving}
+                            >
+                              {saving ? t("clients.actions.reactivating") : t("common.reactivate")}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}

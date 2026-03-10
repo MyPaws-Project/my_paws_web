@@ -1,30 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
+import { useAuth } from "../../app/providers/AuthProvider";
 import { useTranslation } from "react-i18next";
 
-import {
-  listAppointmentsForVetInRange,
-  deleteAppointment,
-} from "../../services/appointments/appointments.service";
+import { listAppointmentsForVetInRange, deleteAppointment } from "../../services/appointments/appointments.service";
 import { getClientById } from "../../services/clients/clients.service";
-import { auth } from "../../services/firebase/firebase";
 
 import "./appointmentsList.css";
 
 export default function AppointmentsList() {
   const { t, i18n } = useTranslation();
 
-  const [user, setUser] = useState(null);
+  const { user, loading: authLoading } = useAuth();
 
   const [items, setItems] = useState([]);
   const [clientMap, setClientMap] = useState({});
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
-    return () => unsub();
-  }, []);
 
   function getTodayRange() {
     const now = new Date();
@@ -77,7 +70,8 @@ export default function AppointmentsList() {
           try {
             const c = await getClientById(clientId);
             return [clientId, c?.fullName || t("appointments.list.clientUnnamed")];
-          } catch {
+          } catch (e) {
+            console.error("ERROR loading client:", e);
             return [clientId, t("appointments.list.clientLoadFailed")];
           }
         })
@@ -97,20 +91,31 @@ export default function AppointmentsList() {
   }
 
   useEffect(() => {
-    load(user?.uid);
+    if (!user?.uid) {
+      setItems([]);
+      setClientMap({});
+      setLoading(false);
+      return;
+    }
+
+    load(user.uid);
   }, [user?.uid]);
 
-  async function handleDelete(id) {
-    const ok = window.confirm(t("appointments.confirm.delete"));
-    if (!ok) return;
+  async function confirmDelete() {
+    if (!appointmentToDelete) return;
 
     try {
+      setDeleting(true);
       setError("");
-      await deleteAppointment(id);
+      await deleteAppointment(appointmentToDelete.id);
+      setAppointmentToDelete(null);
       await load(user?.uid);
     } catch (e) {
       console.error("ERROR deleting appointment:", e);
       setError(t("appointments.errors.delete"));
+      setAppointmentToDelete(null);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -125,7 +130,9 @@ export default function AppointmentsList() {
     [i18n.language]
   );
 
-  if (loading) return <p className="al-status">{t("appointments.list.loading")}</p>;
+  if (authLoading || loading) {
+    return <p className="al-status">{t("appointments.list.loading")}</p>;
+  }
 
   return (
     <div className="al-page">
@@ -191,9 +198,54 @@ export default function AppointmentsList() {
                     </div>
                   ) : null}
                 </div>
+                
+                {appointmentToDelete ? (
+                  <div
+                    className="al-modal-overlay"
+                    onClick={() => !deleting && setAppointmentToDelete(null)}
+                    role="dialog"
+                    aria-modal="true"
+                  >
+                    <div className="al-modal" onClick={(e) => e.stopPropagation()}>
+                      <div className="al-modal-header">
+                        <h3 className="al-modal-title">{t("appointments.confirm.deleteTitle")}</h3>
+                      </div>
+
+                      <p className="al-modal-text">
+                        {t("appointments.confirm.deleteText")}
+                      </p>
+
+                      <div className="al-modal-actions">
+                        <button
+                          className="btn-secondary"
+                          type="button"
+                          onClick={() => setAppointmentToDelete(null)}
+                          disabled={deleting}
+                        >
+                          {t("common.cancel")}
+                        </button>
+
+                        <button
+                          className="btn-danger"
+                          type="button"
+                          onClick={confirmDelete}
+                          disabled={deleting}
+                        >
+                          {deleting
+                            ? t("appointments.actions.deleting", { defaultValue: "Deleting..." })
+                            : t("appointments.actions.delete")}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="al-actions">
-                  <button className="btn-danger" onClick={() => handleDelete(a.id)}>
+                  <button
+                    className="btn-danger"
+                    onClick={() => setAppointmentToDelete(a)}
+                    disabled={deleting}
+                  >
                     {t("appointments.actions.delete")}
                   </button>
                 </div>

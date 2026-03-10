@@ -94,7 +94,11 @@
     },
     "confirm": {
       "disable": "Are you sure you want to disable this client?",
-      "reactivate": "Are you sure you want to reactivate this client?"
+      "reactivate": "Are you sure you want to reactivate this client?",
+      "disableTitle": "Disable client",
+      "disableText": "Are you sure you want to disable {{name}}?",
+      "reactivateTitle": "Reactivate client",
+      "reactivateText": "Do you want to reactivate {{name}}?"
     },
     "errors": {
       "load": "Error loading clients",
@@ -111,7 +115,9 @@
         "pets": "Pets"
       },
       "actions": {
-        "newPet": "+ New pet"
+        "newPet": "+ New pet",
+        "disabling": "Disabling...",
+        "reactivating": "Reactivating..."
       },
       "pets": {
         "loading": "Loading pets…",
@@ -177,7 +183,9 @@
     },
     "form": {
       "na": "-",
+      "loading": "Loading appointment…",
       "titleNew": "New appointment",
+      "titleEdit": "Edit appointment",
       "emptyClients": "(No active clients)",
       "defaults": {
         "reason": "Consultation"
@@ -194,22 +202,29 @@
       "actions": {
         "back": "Back",
         "create": "Create appointment",
-        "creating": "Creating…"
+        "creating": "Creating…",
+        "save": "Save changes",
+        "saving": "Saving…"
       },
       "errors": {
         "loadClients": "Couldn't load clients.",
+        "load": "Couldn't load the appointment.",
         "needLogin": "You need to sign in.",
-        "missingRange": "Missing start or end in the URL.",
+        "missingRange": "Could not determine the selected time slot.",
         "pickClient": "Please select a client.",
         "invalidDate": "Invalid date.",
-        "create": "Couldn't create the appointment."
+        "create": "Couldn't create the appointment.",
+        "update": "Couldn't update the appointment."
       }
     },
     "actions": {
-      "delete": "Delete"
+      "delete": "Delete",
+      "deleting": "Deleting..."
     },
     "confirm": {
-      "delete": "Delete this appointment?"
+      "delete": "Are you sure you want to delete this appointment?",
+      "deleteTitle": "Delete appointment",
+      "deleteText": "Are you sure you want to delete this appointment?"
     },
     "errors": {
       "loadToday": "Couldn't load today's appointments.",
@@ -412,6 +427,7 @@
       "actions": {
         "add": "+ Add visit",
         "delete": "Delete",
+        "deleting": "Deleting...",
         "back": "Back"
       },
       "empty": "There are no visits recorded yet.",
@@ -426,6 +442,7 @@
         "noReason": "No reason"
       },
       "confirm": {
+        "title": "Delete visit",
         "delete": "Delete this visit? This action cannot be undone."
       },
       "errors": {
