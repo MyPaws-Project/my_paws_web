@@ -31,6 +31,7 @@ export async function createAppointment(data) {
     vetId: data.vetId || user.uid,
     clientId: data.clientId,
     petId: data.petId || null,
+    petName: data.petName || "",
     startTime: data.startTime,
     endTime: data.endTime,
     reason: data.reason || "",

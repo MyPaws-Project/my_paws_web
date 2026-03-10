@@ -9,7 +9,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
 import { auth } from "../../services/firebase/firebase";
-import { listAppointmentsForVet } from "../../services/appointments/appointments.service";
+import { listAppointmentsForVet, deleteAppointment } from "../../services/appointments/appointments.service";
 import { getClientById } from "../../services/clients/clients.service";
 
 import "./appointmentsCalendar.css";
@@ -48,6 +48,7 @@ export default function AppointmentsCalendar() {
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
   const [selectedAppt, setSelectedAppt] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const formatTime = (d) => {
     if (!d) return "";
@@ -155,6 +156,7 @@ export default function AppointmentsCalendar() {
                 notes: a.notes || "",
                 clientId: a.clientId || null,
                 petId: a.petId || null,
+                petName: a.petName || "",
                 clientName,
               },
             };
@@ -208,6 +210,25 @@ export default function AppointmentsCalendar() {
     const apptWord = t("appointments.calendar.subtitle.appts", { count });
     return t("appointments.calendar.subtitle.text", { count, apptWord });
   }, [events.length, t]);
+
+  const handleDeleteAppointment = async () => {
+    if (!selectedAppt?.id) return;
+
+    const ok = window.confirm(t("appointments.confirm.delete"));
+    if (!ok) return;
+
+    try {
+      setDeleting(true);
+      await deleteAppointment(selectedAppt.id);
+      setSelectedAppt(null);
+      setReloadKey((k) => k + 1);
+    } catch (e) {
+      console.error(e);
+      setError(t("appointments.errors.delete"));
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   if (loading) return <p className="ac-status">{t("appointments.calendar.loading")}</p>;
   if (!user?.uid) return <p className="ac-status">{t("appointments.calendar.needLogin")}</p>;
@@ -300,6 +321,7 @@ export default function AppointmentsCalendar() {
               notes: props.notes || "",
               clientId: props.clientId || null,
               petId: props.petId || null,
+              petName: props.petName || "",
               clientName: props.clientName || ev.title || t("appointments.calendar.clientFallback"),
             });
           }}
@@ -345,8 +367,15 @@ export default function AppointmentsCalendar() {
         <div className="ac-modal-backdrop" onClick={() => setSelectedAppt(null)} role="presentation">
           <div className="ac-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="ac-modal-head">
-              <div>
-                <div className="ac-modal-title">{selectedAppt.clientName}</div>
+              <div className="ac-modal-head-main">
+                <div className="ac-modal-title-row">
+                  <div className="ac-modal-title">{selectedAppt.clientName}</div>
+
+                  <span className={`ac-status-pill ac-status-pill-top ac-status-${selectedAppt.status}`}>
+                    {statusLabel(selectedAppt.status)}
+                  </span>
+                </div>
+
                 <div className="ac-modal-sub">
                   {formatDateOnly(selectedAppt.start)}
                   {selectedAppt.start ? ` · ${formatRange(selectedAppt.start, selectedAppt.end)}` : ""}
@@ -359,16 +388,17 @@ export default function AppointmentsCalendar() {
             </div>
 
             <div className="ac-modal-body">
+
+              {selectedAppt.petName ? (
+                <div className="ac-kv">
+                  <span>{t("appointments.calendar.modal.pet")}</span>
+                  <strong>{selectedAppt.petName}</strong>
+                </div>
+              ) : null}
+
               <div className="ac-kv">
                 <span>{t("appointments.calendar.modal.reason")}</span>
                 <strong>{selectedAppt.reason}</strong>
-              </div>
-
-              <div className="ac-kv">
-                <span>{t("appointments.calendar.modal.status")}</span>
-                <strong className={`ac-status-pill ac-status-${selectedAppt.status}`}>
-                  {statusLabel(selectedAppt.status)}
-                </strong>
               </div>
 
               {selectedAppt.notes ? (
@@ -378,15 +408,33 @@ export default function AppointmentsCalendar() {
                 </div>
               ) : null}
 
+
               <div className="ac-modal-actions">
+                <button
+                  className="btn-primary"
+                  onClick={() => navigate(`/appointments/${selectedAppt.id}/edit`)}
+                  disabled={deleting}
+                >
+                  {t("appointments.calendar.modal.editAppointment")}
+                </button>
+                
                 {selectedAppt.clientId ? (
-                  <button className="btn-secondary" onClick={() => navigate(`/clients/${selectedAppt.clientId}`)}>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => navigate(`/clients/${selectedAppt.clientId}`)}
+                    disabled={deleting}
+                  >
                     {t("appointments.calendar.modal.viewClient")}
                   </button>
                 ) : null}
 
-                <button className="btn-primary" onClick={() => navigate(`/appointments/${selectedAppt.id}/edit`)}>
-                  {t("appointments.calendar.modal.editAppointment")}
+
+                <button
+                  className="btn-danger"
+                  onClick={handleDeleteAppointment}
+                  disabled={deleting}
+                >
+                  {deleting ? t("appointments.actions.deleting") : t("appointments.actions.delete")}
                 </button>
               </div>
             </div>

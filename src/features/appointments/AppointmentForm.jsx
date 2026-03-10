@@ -4,8 +4,9 @@ import { Timestamp } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 
 import { auth } from "../../services/firebase/firebase";
-import { createAppointment, getAppointment, updateAppointment, } from "../../services/appointments/appointments.service";
+import { createAppointment, getAppointment, updateAppointment } from "../../services/appointments/appointments.service";
 import { getClients } from "../../services/clients/clients.service";
+import { getPetsByClient } from "../../services/pets/pets.service";
 
 import "./appointmentForm.css";
 
@@ -32,6 +33,10 @@ export default function AppointmentForm() {
 
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState("");
+  const [pets, setPets] = useState([]);
+  const [petId, setPetId] = useState("");
+  const [loadingPets, setLoadingPets] = useState(false);
+
 
   const [startDate, setStartDate] = useState(queryStartDate);
   const [endDate, setEndDate] = useState(queryEndDate);
@@ -92,6 +97,37 @@ export default function AppointmentForm() {
   }, [isEdit, t]);
 
   useEffect(() => {
+    const loadPets = async () => {
+      if (!clientId) {
+        setPets([]);
+        setPetId("");
+        return;
+      }
+
+      try {
+        setLoadingPets(true);
+
+        const data = await getPetsByClient(clientId);
+
+        setPets(data || []);
+
+        setPetId((prev) => {
+          if (prev && (data || []).some((p) => p.id === prev)) return prev;
+          return (data || [])[0]?.id || "";
+        });
+      } catch (e) {
+        console.error(e);
+        setPets([]);
+        setPetId("");
+      } finally {
+        setLoadingPets(false);
+      }
+    };
+
+    loadPets();
+  }, [clientId]);
+
+  useEffect(() => {
     if (!isEdit) {
       setReason((prev) => (prev?.trim() ? prev : t("appointments.form.defaults.reason")));
     }
@@ -122,6 +158,7 @@ export default function AppointmentForm() {
         }
 
         setClientId(appt.clientId || "");
+        setPetId(appt.petId || "");
         setReason(
           appt.reason?.trim()
             ? appt.reason
@@ -182,10 +219,13 @@ export default function AppointmentForm() {
     try {
       setSaving(true);
 
+      const selectedPet = pets.find((p) => p.id === petId);
+
       const payload = {
         vetId: user.uid,
         clientId,
-        petId: null,
+        petId: petId || null,
+        petName: selectedPet?.name || "",
         startTime: Timestamp.fromDate(startDate),
         endTime: Timestamp.fromDate(endDate),
         reason,
@@ -263,6 +303,26 @@ export default function AppointmentForm() {
           </div>
 
           <div className="af-field af-span-2">
+            <label className="af-label">{t("appointments.form.labels.pet")}</label>
+            <select
+              className="af-input"
+              value={petId}
+              onChange={(e) => setPetId(e.target.value)}
+              disabled={saving || loadingPets || !clientId}
+            >
+              {pets.length === 0 ? (
+                <option value="">{t("appointments.form.emptyPets")}</option>
+              ) : (
+                pets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name || t("common.unnamed")}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
+          <div className="af-field af-span-2">
             <label className="af-label">{t("appointments.form.labels.reason")}</label>
             <input
               className="af-input"
@@ -296,8 +356,7 @@ export default function AppointmentForm() {
           <button
             className="btn-primary"
             onClick={handleSubmit}
-            disabled={saving || loadingClients || loadingAppointment}
-          >
+            disabled={saving || loadingClients || loadingAppointment || loadingPets}          >
             {saving
               ? isEdit
                 ? t("appointments.form.actions.saving")

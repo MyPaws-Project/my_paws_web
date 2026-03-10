@@ -289,29 +289,25 @@ export default function PetDetails() {
           ← {t("pets.details.actions.backToClient")}
         </button>
 
-        <div className="pd-actions">
-          <button
-            className="btn-primary"
-            onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
-          >
-            {t("pets.details.actions.medicalHistory")}
-          </button>
+        <div className="pd-actions-wrap">
+          <div className="pd-actions-top">
+            <button
+              className="btn-primary"
+              onClick={() => navigate(`/clients/${clientId}/pets/${petId}/history`)}
+            >
+              {t("pets.details.actions.medicalHistory")}
+            </button>
 
-          <button
-            className="btn-secondary"
-            onClick={() => navigate(`/clients/${clientId}/pets/${petId}/edit`)}
-            disabled={saving}
-          >
-            {t("common.edit")}
-          </button>
+            <button
+              className="btn-secondary"
+              onClick={() => navigate(`/clients/${clientId}/pets/${petId}/edit`)}
+              disabled={saving}
+            >
+              {t("common.edit")}
+            </button>
+          </div>
 
-          <button
-            className="btn-danger"
-            onClick={handleDelete}
-            disabled={saving}
-          >
-            {t("common.delete")}
-          </button>
+
         </div>
       </div>
 
@@ -620,6 +616,16 @@ export default function PetDetails() {
           </div>
         </div>
       ) : null}
+
+      <div className="pd-delete-bottom">
+        <button
+          className="btn-danger"
+          onClick={handleDelete}
+          disabled={saving}
+        >
+          {t("common.delete")}
+        </button>
+      </div>
 
       {deleteModalOpen ? (
         <div
